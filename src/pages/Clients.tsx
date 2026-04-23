@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, FileDown, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, FileDown, CheckCircle2, Search, X } from "lucide-react";
 import { eur } from "@/lib/invoiceCalc";
 import { generateInvoicePdf, type Issuer } from "@/lib/pdf";
 import { toast } from "sonner";
@@ -16,6 +17,8 @@ const Clients = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [issuers, setIssuers] = useState<Record<string, Issuer>>({});
   const [openClient, setOpenClient] = useState<string | null>(null);
+  const [nameFilter, setNameFilter] = useState("");
+  const [issuerFilter, setIssuerFilter] = useState<"all" | "JHE" | "BN">("all");
 
   useEffect(() => {
     (async () => {
@@ -30,7 +33,7 @@ const Clients = () => {
     })();
   }, []);
 
-  // Agrupar por cliente (clave: nombre normalizado)
+  // Agrupar por cliente + emisor
   const clients = useMemo(() => {
     const groups = new Map<
       string,
@@ -38,6 +41,7 @@ const Clients = () => {
         key: string;
         name: string;
         tax_id: string;
+        issuer_id: string;
         count: number;
         total: number;
         paid: number;
@@ -46,8 +50,9 @@ const Clients = () => {
       }
     >();
     for (const inv of invoices) {
-      const key = (inv.client_name || "").trim().toLowerCase();
-      if (!key) continue;
+      const nameKey = (inv.client_name || "").trim().toLowerCase();
+      if (!nameKey) continue;
+      const key = `${inv.issuer_id}::${nameKey}`;
       const total = parseFloat(inv.total) || 0;
       const isPaid = !!inv.paid;
       const g =
@@ -56,6 +61,7 @@ const Clients = () => {
           key,
           name: inv.client_name,
           tax_id: inv.client_tax_id || "",
+          issuer_id: inv.issuer_id,
           count: 0,
           total: 0,
           paid: 0,
@@ -71,6 +77,15 @@ const Clients = () => {
     }
     return Array.from(groups.values()).sort((a, b) => b.total - a.total);
   }, [invoices]);
+
+  const filteredClients = useMemo(() => {
+    const q = nameFilter.trim().toLowerCase();
+    return clients.filter((c) => {
+      if (issuerFilter !== "all" && c.issuer_id !== issuerFilter) return false;
+      if (q && !c.name.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [clients, nameFilter, issuerFilter]);
 
   const downloadPdf = (inv: Invoice) => {
     const issuer = issuers[inv.issuer_id];
@@ -101,6 +116,12 @@ const Clients = () => {
 
   const current = clients.find((c) => c.key === openClient);
 
+  const issuerBadge = (id: string) => {
+    if (id === "JHE") return <Badge variant="secondary">Jon</Badge>;
+    if (id === "BN") return <Badge className="bg-purple-600 hover:bg-purple-600 text-white">Bright</Badge>;
+    return <Badge variant="outline">{id}</Badge>;
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
@@ -109,15 +130,48 @@ const Clients = () => {
             <Link to="/"><ArrowLeft className="h-5 w-5" /></Link>
           </Button>
           <h1 className="text-xl font-bold">Clientes</h1>
-          <div className="ml-auto text-sm text-muted-foreground">{clients.length} clientes</div>
+          <div className="ml-auto text-sm text-muted-foreground">{filteredClients.length} de {clients.length}</div>
         </div>
       </header>
-      <main className="container py-6">
+      <main className="container py-6 space-y-4">
+        <div className="flex flex-wrap gap-3 items-center">
+          <div className="relative flex-1 min-w-[240px] max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={nameFilter}
+              onChange={(e) => setNameFilter(e.target.value)}
+              placeholder="Filtrar por nombre de cliente…"
+              className="pl-9 pr-9"
+            />
+            {nameFilter && (
+              <button
+                onClick={() => setNameFilter("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          <div className="flex gap-1 rounded-md border p-1 bg-card">
+            {(["all", "JHE", "BN"] as const).map((v) => (
+              <Button
+                key={v}
+                size="sm"
+                variant={issuerFilter === v ? "default" : "ghost"}
+                onClick={() => setIssuerFilter(v)}
+              >
+                {v === "all" ? "Todos" : v === "JHE" ? "Jon" : "Bright"}
+              </Button>
+            ))}
+          </div>
+        </div>
+
         <Card className="overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-muted">
               <tr className="text-left">
                 <th className="p-3">Cliente</th>
+                <th className="p-3">Emisor</th>
                 <th className="p-3">NIF / CIF</th>
                 <th className="p-3 text-right">Facturas</th>
                 <th className="p-3 text-right">Cobrado</th>
@@ -126,12 +180,13 @@ const Clients = () => {
               </tr>
             </thead>
             <tbody>
-              {clients.length === 0 && (
-                <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">Sin facturas</td></tr>
+              {filteredClients.length === 0 && (
+                <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">Sin resultados</td></tr>
               )}
-              {clients.map((c) => (
+              {filteredClients.map((c) => (
                 <tr key={c.key} className="border-t hover:bg-muted/40">
                   <td className="p-3 font-medium">{c.name}</td>
+                  <td className="p-3">{issuerBadge(c.issuer_id)}</td>
                   <td className="p-3 text-muted-foreground">{c.tax_id}</td>
                   <td className="p-3 text-right">{c.count}</td>
                   <td className="p-3 text-right text-emerald-600 dark:text-emerald-400">{eur(c.paid)}</td>
