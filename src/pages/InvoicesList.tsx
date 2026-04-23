@@ -26,6 +26,8 @@ import {
   Undo2,
   FileSpreadsheet,
   X,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { eur } from "@/lib/invoiceCalc";
 import { generateInvoicePdf, type Issuer } from "@/lib/pdf";
@@ -43,6 +45,9 @@ const InvoicesList = () => {
   const [paidAt, setPaidAt] = useState<string>("");
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState<any | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
 
   // filtros y orden
@@ -155,6 +160,39 @@ const InvoicesList = () => {
       .createSignedUrl(path, 60 * 5);
     if (error || !data?.signedUrl) return toast.error("No se pudo abrir el justificante");
     window.open(data.signedUrl, "_blank");
+  };
+
+  const openDelete = (inv: any) => {
+    setDeleteOpen(inv);
+    setDeleteConfirmText("");
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteOpen) return;
+    if (deleteConfirmText.trim() !== deleteOpen.invoice_number) {
+      return toast.error("El número de factura no coincide");
+    }
+    setDeleting(true);
+    try {
+      if (deleteOpen.payment_proof_url) {
+        await supabase.storage
+          .from("payment-proofs")
+          .remove([deleteOpen.payment_proof_url]);
+      }
+      const { error } = await supabase
+        .from("invoices")
+        .delete()
+        .eq("id", deleteOpen.id);
+      if (error) throw error;
+      toast.success(`Factura ${deleteOpen.invoice_number} eliminada`);
+      setDeleteOpen(null);
+      setDeleteConfirmText("");
+      await reload();
+    } catch (e: any) {
+      toast.error(e.message || "Error al eliminar");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   // helper: extrae conceptos de las líneas
@@ -404,9 +442,22 @@ const InvoicesList = () => {
                       )}
                     </td>
                     <td className="p-3 text-right">
-                      <Button size="sm" variant="outline" onClick={() => downloadPdf(r)}>
-                        <FileDown className="h-4 w-4 mr-1" />PDF
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button size="sm" variant="outline" onClick={() => downloadPdf(r)}>
+                          <FileDown className="h-4 w-4 mr-1" />PDF
+                        </Button>
+                        {isAdmin && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openDelete(r)}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            title="Eliminar factura"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -462,6 +513,53 @@ const InvoicesList = () => {
             </Button>
             <Button onClick={savePaid} disabled={saving}>
               {saving ? "Guardando…" : "Confirmar cobro"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deleteOpen} onOpenChange={(o) => !o && setDeleteOpen(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Eliminar factura {deleteOpen?.invoice_number}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">
+              <p className="font-semibold text-destructive">Esta acción no se puede deshacer.</p>
+              <p className="text-muted-foreground mt-1">
+                Se eliminará la factura <strong>{deleteOpen?.invoice_number}</strong> de{" "}
+                <strong>{deleteOpen?.client_name}</strong> por{" "}
+                <strong>{deleteOpen ? eur(parseFloat(deleteOpen.total)) : ""}</strong>.
+                El número quedará libre y será reutilizado en la próxima factura del mismo emisor y año.
+              </p>
+            </div>
+            <div>
+              <Label>
+                Para confirmar, escribe el número de factura:{" "}
+                <span className="font-mono font-semibold">{deleteOpen?.invoice_number}</span>
+              </Label>
+              <Input
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder={deleteOpen?.invoice_number}
+                className="mt-1 font-mono"
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteOpen(null)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deleting || deleteConfirmText.trim() !== deleteOpen?.invoice_number}
+            >
+              {deleting ? "Eliminando…" : "Eliminar definitivamente"}
             </Button>
           </DialogFooter>
         </DialogContent>
