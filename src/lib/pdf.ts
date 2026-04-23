@@ -37,6 +37,7 @@ export type InvoicePdfData = {
   irpf_amount: number;
   total: number;
   pre_payment_note?: string | null;
+  invoice_type?: string;
 };
 
 function fmtDate(iso: string) {
@@ -226,11 +227,13 @@ export function generateInvoicePdf(data: InvoicePdfData) {
 
   cursor += 4;
 
-  // Post-payment note (siempre)
-  doc.setFont("helvetica", "italic");
-  doc.setFontSize(8.5);
-  const postLines = doc.splitTextToSize(POST_PAYMENT_NOTE, pageW - margin * 2);
-  doc.text(postLines, margin, cursor);
+  // Post-payment note (excepto en facturas de sponsor)
+  if (data.invoice_type !== "sponsor") {
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(8.5);
+    const postLines = doc.splitTextToSize(POST_PAYMENT_NOTE, pageW - margin * 2);
+    doc.text(postLines, margin, cursor);
+  }
 
   doc.save(`${data.invoice_number}.pdf`);
 }
