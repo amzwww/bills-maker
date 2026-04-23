@@ -26,6 +26,9 @@ const NewInvoice = () => {
   const [issuer, setIssuer] = useState<Issuer | null>(null);
   const [loading, setLoading] = useState(false);
   const [previewNumber, setPreviewNumber] = useState<string>("");
+  const [nextSeq, setNextSeq] = useState<number | null>(null);
+  const [gaps, setGaps] = useState<number[]>([]);
+  const [chosenSeq, setChosenSeq] = useState<number | null>(null);
 
   // Cabecera
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0, 10));
@@ -118,18 +121,32 @@ const NewInvoice = () => {
     }
   };
 
-  // Cargar emisor + preview número
+  // Cargar emisor + preview número + huecos
   useEffect(() => {
     (async () => {
       const { data } = await supabase.from("issuers").select("*").eq("id", issuerId).single();
       if (data) setIssuer(data as Issuer);
       const year = parseInt(invoiceDate.slice(0, 4));
       const { data: seqData } = await supabase.rpc("next_invoice_seq", { _issuer_id: issuerId, _year: year });
+      const { data: gapsData } = await supabase.rpc("find_invoice_gaps" as any, { _issuer_id: issuerId, _year: year });
+      const gapsList: number[] = Array.isArray(gapsData)
+        ? gapsData.map((g: any) => (typeof g === "number" ? g : g.missing_seq)).filter((n: any) => typeof n === "number")
+        : [];
+      setGaps(gapsList);
       if (typeof seqData === "number") {
-        setPreviewNumber(`${issuerId}-${year}-${String(seqData).padStart(3, "0")}`);
+        setNextSeq(seqData);
       }
     })();
   }, [issuerId, invoiceDate]);
+
+  // Recalcular preview cuando cambia chosenSeq o nextSeq
+  useEffect(() => {
+    const year = parseInt(invoiceDate.slice(0, 4));
+    const useSeq = chosenSeq ?? nextSeq;
+    if (typeof useSeq === "number") {
+      setPreviewNumber(`${issuerId}-${year}-${String(useSeq).padStart(3, "0")}`);
+    }
+  }, [chosenSeq, nextSeq, issuerId, invoiceDate]);
 
   // Auto-rellenar primera línea según tipo
   useEffect(() => {
