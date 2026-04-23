@@ -107,32 +107,29 @@ export function generateInvoicePdf(data: InvoicePdfData) {
     y += 5;
   }
 
-  // Facturar a
+  // Facturar a (bloque vertical limpio, sin solapes ni duplicados)
   y = Math.max(y, margin + 40) + 6;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
   doc.text("FACTURAR A:", margin, y);
-  doc.setFont("helvetica", "normal");
-  doc.text(data.client_name, margin + 26, y);
   y += 5;
-  if (data.client_tax_id) {
-    doc.text(data.client_tax_id, margin, y);
-    y += 5;
+  doc.text(data.client_name, margin, y);
+  y += 5;
+  doc.setFont("helvetica", "normal");
+  const clientLines = [
+    data.client_tax_id,
+    data.client_address_line1,
+    data.client_address_line2,
+    data.client_city_zip,
+    data.client_country,
+  ].filter((v): v is string => !!v && v.trim().length > 0);
+  const dedup: string[] = [];
+  for (const l of clientLines) {
+    const norm = l.trim().toLowerCase();
+    if (!dedup.some((d) => d.trim().toLowerCase() === norm)) dedup.push(l);
   }
-  if (data.client_address_line1) {
-    doc.text(data.client_address_line1, margin, y);
-    y += 5;
-  }
-  if (data.client_address_line2) {
-    doc.text(data.client_address_line2, margin, y);
-    y += 5;
-  }
-  if (data.client_city_zip) {
-    doc.text(data.client_city_zip, margin, y);
-    y += 5;
-  }
-  if (data.client_country) {
-    doc.text(data.client_country, margin, y);
+  for (const l of dedup) {
+    doc.text(l, margin, y);
     y += 5;
   }
 
