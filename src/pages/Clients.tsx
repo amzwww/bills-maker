@@ -17,6 +17,8 @@ const Clients = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [issuers, setIssuers] = useState<Record<string, Issuer>>({});
   const [openClient, setOpenClient] = useState<string | null>(null);
+  const [nameFilter, setNameFilter] = useState("");
+  const [issuerFilter, setIssuerFilter] = useState<"all" | "JHE" | "BN">("all");
 
   useEffect(() => {
     (async () => {
