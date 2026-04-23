@@ -1,1 +1,4 @@
 project_id = "csgfdutdunubhyxdtjgq"
+
+[functions.extract-client]
+verify_jwt = false
