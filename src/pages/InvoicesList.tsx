@@ -162,6 +162,39 @@ const InvoicesList = () => {
     window.open(data.signedUrl, "_blank");
   };
 
+  const openDelete = (inv: any) => {
+    setDeleteOpen(inv);
+    setDeleteConfirmText("");
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteOpen) return;
+    if (deleteConfirmText.trim() !== deleteOpen.invoice_number) {
+      return toast.error("El número de factura no coincide");
+    }
+    setDeleting(true);
+    try {
+      if (deleteOpen.payment_proof_url) {
+        await supabase.storage
+          .from("payment-proofs")
+          .remove([deleteOpen.payment_proof_url]);
+      }
+      const { error } = await supabase
+        .from("invoices")
+        .delete()
+        .eq("id", deleteOpen.id);
+      if (error) throw error;
+      toast.success(`Factura ${deleteOpen.invoice_number} eliminada`);
+      setDeleteOpen(null);
+      setDeleteConfirmText("");
+      await reload();
+    } catch (e: any) {
+      toast.error(e.message || "Error al eliminar");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   // helper: extrae conceptos de las líneas
   const conceptsOf = (inv: any): string => {
     const items = (inv.line_items || []) as any[];
