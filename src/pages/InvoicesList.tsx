@@ -26,6 +26,8 @@ import {
   Undo2,
   FileSpreadsheet,
   X,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { eur } from "@/lib/invoiceCalc";
 import { generateInvoicePdf, type Issuer } from "@/lib/pdf";
