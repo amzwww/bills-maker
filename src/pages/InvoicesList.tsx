@@ -517,6 +517,53 @@ const InvoicesList = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!deleteOpen} onOpenChange={(o) => !o && setDeleteOpen(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Eliminar factura {deleteOpen?.invoice_number}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">
+              <p className="font-semibold text-destructive">Esta acción no se puede deshacer.</p>
+              <p className="text-muted-foreground mt-1">
+                Se eliminará la factura <strong>{deleteOpen?.invoice_number}</strong> de{" "}
+                <strong>{deleteOpen?.client_name}</strong> por{" "}
+                <strong>{deleteOpen ? eur(parseFloat(deleteOpen.total)) : ""}</strong>.
+                El número quedará libre y será reutilizado en la próxima factura del mismo emisor y año.
+              </p>
+            </div>
+            <div>
+              <Label>
+                Para confirmar, escribe el número de factura:{" "}
+                <span className="font-mono font-semibold">{deleteOpen?.invoice_number}</span>
+              </Label>
+              <Input
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder={deleteOpen?.invoice_number}
+                className="mt-1 font-mono"
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteOpen(null)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deleting || deleteConfirmText.trim() !== deleteOpen?.invoice_number}
+            >
+              {deleting ? "Eliminando…" : "Eliminar definitivamente"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
