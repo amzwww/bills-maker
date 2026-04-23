@@ -26,15 +26,18 @@ Deno.serve(async (req) => {
 
     const dataUrl = `data:${mimeType || "image/png"};base64,${imageBase64}`;
 
-    const systemPrompt = `Eres un asistente que extrae datos fiscales de clientes desde capturas de pantalla (emails, fichas, facturas, webs). Devuelve SIEMPRE un JSON con exactamente estos campos (string vacío si no aparece):
-- client_name: razón social o nombre completo
-- client_tax_id: CIF/NIF/VAT
-- client_address_line1: calle y número
-- client_address_line2: complemento (piso, oficina, edificio) si lo hay
-- client_city_zip: "CP CIUDAD" (ej: "08018 Barcelona")
-- client_country: país solo si NO es España
+    const systemPrompt = `Eres un asistente que extrae datos para emitir una factura desde capturas de pantalla (fichas CRM, emails, webs, etc.). Devuelve SIEMPRE un JSON con exactamente estos campos (string vacío "" o null si no aparece):
+- client_name: razón social o nombre completo del cliente / empresa a facturar (ej: "EVENTOS PYMES SAS")
+- client_tax_id: CIF/NIF/VAT/CUIT/RUT (cualquier identificador fiscal)
+- client_address_line1: calle y número (sin ciudad ni país)
+- client_address_line2: complemento (piso, oficina, edificio) si lo hay; si no, ""
+- client_city_zip: "CP CIUDAD" para España (ej: "08018 Barcelona"); para extranjero "CIUDAD, CP" o como aparezca
+- client_country: país SIEMPRE que aparezca y NO sea España. Si es España, "".
 - is_foreign: true si la dirección es fuera de España
 - is_canary: true si la dirección es en Canarias (Las Palmas, Santa Cruz de Tenerife, CP 35xxx o 38xxx)
+- ponencia_date: fecha del evento/ponencia en formato YYYY-MM-DD si aparece (ej de "29/06/2026" -> "2026-06-29"), si no ""
+- amount: importe en euros como número (sin símbolo, punto decimal). Ej "9.000,00 €" -> 9000, "1.234,56" -> 1234.56. Si no aparece, null.
+- parent_invoice_number: si la captura referencia una factura existente (ej "JHE-2026-079"), devuélvela; si no, ""
 No inventes datos. Solo JSON, sin markdown.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

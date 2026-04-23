@@ -89,7 +89,19 @@ const NewInvoice = () => {
         setIsCanary(data.is_canary);
         if (data.is_canary) setIsForeign(false);
       }
-      toast.success("Datos del cliente extraídos");
+      if (data.ponencia_date) setPonenciaDate(data.ponencia_date);
+      if (data.parent_invoice_number && type === "complemento") setParentInvoice(data.parent_invoice_number);
+      if (typeof data.amount === "number" && data.amount > 0) {
+        setItems((prev) => {
+          if (type === "complemento") {
+            // segunda línea = importe
+            return prev.map((it, i) => i === 1 ? { ...it, unit_price: data.amount, quantity: 1, total: data.amount } : it);
+          }
+          // ponencia / sponsor: primera línea
+          return prev.map((it, i) => i === 0 ? { ...it, unit_price: data.amount, quantity: 1, total: data.amount } : it);
+        });
+      }
+      toast.success("Datos extraídos de la captura");
     } catch (e: any) {
       toast.error(e.message || "Error extrayendo datos");
     } finally {
