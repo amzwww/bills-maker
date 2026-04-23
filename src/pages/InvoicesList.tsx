@@ -244,13 +244,13 @@ const InvoicesList = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="container py-4 flex items-center gap-4">
+      <header className="border-b bg-card sticky top-0 z-20">
+        <div className="container py-3 flex items-center gap-2 flex-wrap">
           <Button asChild variant="ghost" size="icon">
             <Link to="/"><ArrowLeft className="h-5 w-5" /></Link>
           </Button>
-          <h1 className="text-xl font-bold">Facturas emitidas</h1>
-          <div className="ml-auto flex gap-2">
+          <h1 className="text-base sm:text-xl font-bold flex-1 min-w-0 truncate">Facturas emitidas</h1>
+          <div className="flex gap-2 flex-wrap">
             <Button asChild variant="outline" size="sm">
               <Link to="/clientes">Ver por clientes</Link>
             </Button>
@@ -325,92 +325,94 @@ const InvoicesList = () => {
         </Card>
 
         <Card className="overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-muted">
-              <tr className="text-left">
-                <th className="p-3 cursor-pointer select-none" onClick={() => toggleSort("invoice_number")}>
-                  Número<SortIcon k="invoice_number" />
-                </th>
-                <th className="p-3 cursor-pointer select-none" onClick={() => toggleSort("invoice_date")}>
-                  Fecha<SortIcon k="invoice_date" />
-                </th>
-                <th className="p-3 cursor-pointer select-none" onClick={() => toggleSort("client_name")}>
-                  Cliente<SortIcon k="client_name" />
-                </th>
-                <th className="p-3">Emisor</th>
-                <th className="p-3">Tipo</th>
-                <th className="p-3 text-right cursor-pointer select-none" onClick={() => toggleSort("total")}>
-                  Total<SortIcon k="total" />
-                </th>
-                <th className="p-3 text-center">Cobro</th>
-                <th className="p-3"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 && (
-                <tr><td colSpan={8} className="p-6 text-center text-muted-foreground">Sin resultados</td></tr>
-              )}
-              {filtered.map((r) => (
-                <tr key={r.id} className="border-t">
-                  <td className="p-3 font-mono">{r.invoice_number}</td>
-                  <td className="p-3">{r.invoice_date}</td>
-                  <td className="p-3">{r.client_name}</td>
-                  <td className="p-3">
-                    {r.issuer_id === "BN" ? (
-                      <Badge className="bg-purple-600 hover:bg-purple-600">Bright</Badge>
-                    ) : (
-                      <Badge variant="secondary">Jon</Badge>
-                    )}
-                  </td>
-                  <td className="p-3 capitalize">{r.invoice_type}</td>
-                  <td className="p-3 text-right font-semibold">{eur(parseFloat(r.total))}</td>
-                  <td className="p-3 text-center">
-                    {r.paid ? (
-                      <div className="flex items-center justify-center gap-2">
-                        <Badge className="bg-emerald-600 hover:bg-emerald-600">
-                          <CheckCircle2 className="h-3 w-3 mr-1" />
-                          {r.paid_at}
-                        </Badge>
-                        {r.payment_proof_url && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-6 w-6"
-                            onClick={() => viewProof(r.payment_proof_url)}
-                            title="Ver justificante"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                          </Button>
-                        )}
-                        {isAdmin && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-6 w-6"
-                            onClick={() => undoPaid(r)}
-                            title="Deshacer cobro"
-                          >
-                            <Undo2 className="h-3 w-3" />
-                          </Button>
-                        )}
-                      </div>
-                    ) : isAdmin ? (
-                      <Button size="sm" variant="outline" onClick={() => openPaid(r)}>
-                        <CheckCircle2 className="h-4 w-4 mr-1" />Cobrada
-                      </Button>
-                    ) : (
-                      <Badge variant="outline">Pendiente</Badge>
-                    )}
-                  </td>
-                  <td className="p-3 text-right">
-                    <Button size="sm" variant="outline" onClick={() => downloadPdf(r)}>
-                      <FileDown className="h-4 w-4 mr-1" />PDF
-                    </Button>
-                  </td>
+          <div className="table-wrap" style={{ maxHeight: "calc(100vh - 280px)" }}>
+            <table className="w-full text-sm min-w-[760px]">
+              <thead className="bg-muted sticky top-0 z-10">
+                <tr className="text-left">
+                  <th className="p-3 cursor-pointer select-none whitespace-nowrap" onClick={() => toggleSort("invoice_number")}>
+                    Número<SortIcon k="invoice_number" />
+                  </th>
+                  <th className="p-3 cursor-pointer select-none whitespace-nowrap" onClick={() => toggleSort("invoice_date")}>
+                    Fecha<SortIcon k="invoice_date" />
+                  </th>
+                  <th className="p-3 cursor-pointer select-none" onClick={() => toggleSort("client_name")}>
+                    Cliente<SortIcon k="client_name" />
+                  </th>
+                  <th className="p-3 whitespace-nowrap">Emisor</th>
+                  <th className="p-3 whitespace-nowrap">Tipo</th>
+                  <th className="p-3 text-right whitespace-nowrap cursor-pointer select-none" onClick={() => toggleSort("total")}>
+                    Total<SortIcon k="total" />
+                  </th>
+                  <th className="p-3 text-center whitespace-nowrap">Cobro</th>
+                  <th className="p-3"></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filtered.length === 0 && (
+                  <tr><td colSpan={8} className="p-6 text-center text-muted-foreground">Sin resultados</td></tr>
+                )}
+                {filtered.map((r) => (
+                  <tr key={r.id} className="border-t">
+                    <td className="p-3 font-mono whitespace-nowrap">{r.invoice_number}</td>
+                    <td className="p-3 whitespace-nowrap">{r.invoice_date}</td>
+                    <td className="p-3">{r.client_name}</td>
+                    <td className="p-3">
+                      {r.issuer_id === "BN" ? (
+                        <Badge className="bg-purple-600 hover:bg-purple-600">Bright</Badge>
+                      ) : (
+                        <Badge variant="secondary">Jon</Badge>
+                      )}
+                    </td>
+                    <td className="p-3 capitalize">{r.invoice_type}</td>
+                    <td className="p-3 text-right font-semibold whitespace-nowrap">{eur(parseFloat(r.total))}</td>
+                    <td className="p-3 text-center">
+                      {r.paid ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <Badge className="bg-emerald-600 hover:bg-emerald-600 whitespace-nowrap">
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            {r.paid_at}
+                          </Badge>
+                          {r.payment_proof_url && (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6"
+                              onClick={() => viewProof(r.payment_proof_url)}
+                              title="Ver justificante"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                            </Button>
+                          )}
+                          {isAdmin && (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6"
+                              onClick={() => undoPaid(r)}
+                              title="Deshacer cobro"
+                            >
+                              <Undo2 className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+                      ) : isAdmin ? (
+                        <Button size="sm" variant="outline" onClick={() => openPaid(r)}>
+                          <CheckCircle2 className="h-4 w-4 mr-1" />Cobrada
+                        </Button>
+                      ) : (
+                        <Badge variant="outline">Pendiente</Badge>
+                      )}
+                    </td>
+                    <td className="p-3 text-right">
+                      <Button size="sm" variant="outline" onClick={() => downloadPdf(r)}>
+                        <FileDown className="h-4 w-4 mr-1" />PDF
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Card>
       </main>
 

@@ -12,12 +12,12 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
-        <div className="container py-6 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <img src={logo} alt="Bills maker" className="h-10 w-10 rounded-lg" />
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Bills maker</h1>
-              <p className="text-sm text-muted-foreground">Jon Hernández · BrightNexus</p>
+        <div className="container py-4 flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-3 min-w-0">
+            <img src={logo} alt="Bills maker" className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg shrink-0" />
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold tracking-tight truncate">Bills maker</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">Jon Hernández · BrightNexus</p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
@@ -25,24 +25,24 @@ const Index = () => {
               {isAdmin ? "Admin" : "Usuario"}
             </Badge>
             <Button asChild variant="outline" size="sm">
-              <Link to="/facturas"><List className="h-4 w-4 mr-2" />Facturas</Link>
+              <Link to="/facturas"><List className="h-4 w-4 mr-1 sm:mr-2" /><span className="hidden xs:inline">Facturas</span><span className="xs:hidden">Fact.</span></Link>
             </Button>
             <Button asChild variant="outline" size="sm">
-              <Link to="/clientes"><Users className="h-4 w-4 mr-2" />Clientes</Link>
+              <Link to="/clientes"><Users className="h-4 w-4 mr-1 sm:mr-2" />Clientes</Link>
             </Button>
             {isAdmin && (
               <Button asChild variant="outline" size="sm">
-                <Link to="/ajustes"><Settings className="h-4 w-4 mr-2" />Emisores</Link>
+                <Link to="/ajustes"><Settings className="h-4 w-4 mr-1 sm:mr-2" />Emisores</Link>
               </Button>
             )}
             <Button variant="ghost" size="sm" onClick={signOut} title={user?.email || ""}>
-              <LogOut className="h-4 w-4 mr-2" />Salir
+              <LogOut className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Salir</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="container py-12">
+      <main className="container py-6 sm:py-12">
         {isAdmin ? (
           <>
             <h2 className="text-xl font-semibold mb-6">¿A nombre de quién facturamos?</h2>
