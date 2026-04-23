@@ -267,7 +267,7 @@ const NewInvoice = () => {
         irpf_amount: taxes.irpf_amount,
         total,
         pre_payment_note: prePaymentText,
-        post_payment_note: POST_PAYMENT_NOTE,
+        post_payment_note: computedType === "sponsor" ? null : POST_PAYMENT_NOTE,
       };
 
       const { error } = await supabase.from("invoices").insert(payload);
@@ -297,6 +297,7 @@ const NewInvoice = () => {
           irpf_amount: taxes.irpf_amount,
           total,
           pre_payment_note: prePaymentText,
+          invoice_type: computedType,
         });
       }
 
