@@ -317,6 +317,7 @@ const InvoicesList = () => {
                 <th className="p-3 cursor-pointer select-none" onClick={() => toggleSort("client_name")}>
                   Cliente<SortIcon k="client_name" />
                 </th>
+                <th className="p-3">Emisor</th>
                 <th className="p-3">Tipo</th>
                 <th className="p-3 text-right cursor-pointer select-none" onClick={() => toggleSort("total")}>
                   Total<SortIcon k="total" />
@@ -327,13 +328,20 @@ const InvoicesList = () => {
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">Sin resultados</td></tr>
+                <tr><td colSpan={8} className="p-6 text-center text-muted-foreground">Sin resultados</td></tr>
               )}
               {filtered.map((r) => (
                 <tr key={r.id} className="border-t">
                   <td className="p-3 font-mono">{r.invoice_number}</td>
                   <td className="p-3">{r.invoice_date}</td>
                   <td className="p-3">{r.client_name}</td>
+                  <td className="p-3">
+                    {r.issuer_id === "BN" ? (
+                      <Badge className="bg-purple-600 hover:bg-purple-600">Bright</Badge>
+                    ) : (
+                      <Badge variant="secondary">Jon</Badge>
+                    )}
+                  </td>
                   <td className="p-3 capitalize">{r.invoice_type}</td>
                   <td className="p-3 text-right font-semibold">{eur(parseFloat(r.total))}</td>
                   <td className="p-3 text-center">
