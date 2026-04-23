@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,15 +16,23 @@ import {
 } from "@/components/ui/dialog";
 import {
   ArrowLeft,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
   FileDown,
   CheckCircle2,
   Upload,
   ExternalLink,
   Undo2,
+  FileSpreadsheet,
+  X,
 } from "lucide-react";
 import { eur } from "@/lib/invoiceCalc";
 import { generateInvoicePdf, type Issuer } from "@/lib/pdf";
 import { toast } from "sonner";
+
+type SortKey = "invoice_number" | "invoice_date" | "client_name" | "total";
+type SortDir = "asc" | "desc";
 
 const InvoicesList = () => {
   const [rows, setRows] = useState<any[]>([]);
@@ -33,6 +42,12 @@ const InvoicesList = () => {
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+
+  // filtros y orden
+  const [clientFilter, setClientFilter] = useState("");
+  const [conceptFilter, setConceptFilter] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("invoice_date");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   const reload = async () => {
     const { data: invs } = await supabase
@@ -139,6 +154,90 @@ const InvoicesList = () => {
     window.open(data.signedUrl, "_blank");
   };
 
+  // helper: extrae conceptos de las líneas
+  const conceptsOf = (inv: any): string => {
+    const items = (inv.line_items || []) as any[];
+    return items.map((li) => li?.description || "").join(" | ");
+  };
+
+  // filtrado + orden
+  const filtered = useMemo(() => {
+    const cf = clientFilter.trim().toLowerCase();
+    const xf = conceptFilter.trim().toLowerCase();
+    let list = rows.filter((r) => {
+      const okClient = !cf || (r.client_name || "").toLowerCase().includes(cf);
+      const okConcept = !xf || conceptsOf(r).toLowerCase().includes(xf);
+      return okClient && okConcept;
+    });
+    const dir = sortDir === "asc" ? 1 : -1;
+    list = [...list].sort((a, b) => {
+      let va: any = a[sortKey];
+      let vb: any = b[sortKey];
+      if (sortKey === "total") {
+        va = parseFloat(a.total) || 0;
+        vb = parseFloat(b.total) || 0;
+        return (va - vb) * dir;
+      }
+      if (sortKey === "invoice_number") {
+        // orden natural por seq dentro del nº
+        const na = parseInt(String(a.invoice_number).replace(/\D/g, ""), 10) || 0;
+        const nb = parseInt(String(b.invoice_number).replace(/\D/g, ""), 10) || 0;
+        return (na - nb) * dir;
+      }
+      va = (va ?? "").toString().toLowerCase();
+      vb = (vb ?? "").toString().toLowerCase();
+      if (va < vb) return -1 * dir;
+      if (va > vb) return 1 * dir;
+      return 0;
+    });
+    return list;
+  }, [rows, clientFilter, conceptFilter, sortKey, sortDir]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
+    else {
+      setSortKey(key);
+      setSortDir(key === "total" || key === "invoice_date" ? "desc" : "asc");
+    }
+  };
+
+  const SortIcon = ({ k }: { k: SortKey }) => {
+    if (sortKey !== k) return <ArrowUpDown className="h-3 w-3 inline ml-1 opacity-50" />;
+    return sortDir === "asc"
+      ? <ArrowUp className="h-3 w-3 inline ml-1" />
+      : <ArrowDown className="h-3 w-3 inline ml-1" />;
+  };
+
+  const exportXlsx = () => {
+    if (filtered.length === 0) return toast.error("No hay facturas para exportar");
+    const data = filtered.map((r) => ({
+      Número: r.invoice_number,
+      Fecha: r.invoice_date,
+      Cliente: r.client_name,
+      "NIF/CIF": r.client_tax_id || "",
+      Tipo: r.invoice_type,
+      Conceptos: conceptsOf(r),
+      Subtotal: parseFloat(r.subtotal) || 0,
+      IVA: parseFloat(r.vat_amount) || 0,
+      IRPF: parseFloat(r.irpf_amount) || 0,
+      Total: parseFloat(r.total) || 0,
+      Cobrada: r.paid ? "Sí" : "No",
+      "Fecha cobro": r.paid_at || "",
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws["!cols"] = [
+      { wch: 16 }, { wch: 12 }, { wch: 28 }, { wch: 14 }, { wch: 10 },
+      { wch: 40 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 },
+      { wch: 9 }, { wch: 12 },
+    ];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Facturas");
+    const stamp = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `facturas-${stamp}.xlsx`);
+  };
+
+  const totalFiltered = filtered.reduce((s, r) => s + (parseFloat(r.total) || 0), 0);
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
@@ -147,30 +246,90 @@ const InvoicesList = () => {
             <Link to="/"><ArrowLeft className="h-5 w-5" /></Link>
           </Button>
           <h1 className="text-xl font-bold">Facturas emitidas</h1>
-          <Button asChild variant="outline" size="sm" className="ml-auto">
-            <Link to="/clientes">Ver por clientes</Link>
-          </Button>
+          <div className="ml-auto flex gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link to="/clientes">Ver por clientes</Link>
+            </Button>
+            <Button variant="outline" size="sm" onClick={exportXlsx}>
+              <FileSpreadsheet className="h-4 w-4 mr-2" />Exportar Excel
+            </Button>
+          </div>
         </div>
       </header>
-      <main className="container py-6">
+      <main className="container py-6 space-y-4">
+        <Card className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 items-end">
+            <div>
+              <Label className="text-xs">Filtrar por cliente</Label>
+              <div className="relative">
+                <Input
+                  value={clientFilter}
+                  onChange={(e) => setClientFilter(e.target.value)}
+                  placeholder="Ej. KIA, Mahou…"
+                />
+                {clientFilter && (
+                  <button
+                    onClick={() => setClientFilter("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    aria-label="Limpiar"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs">Filtrar por concepto</Label>
+              <div className="relative">
+                <Input
+                  value={conceptFilter}
+                  onChange={(e) => setConceptFilter(e.target.value)}
+                  placeholder="Ej. ponencia, gastos, sponsor…"
+                />
+                {conceptFilter && (
+                  <button
+                    onClick={() => setConceptFilter("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    aria-label="Limpiar"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="text-sm text-muted-foreground md:text-right">
+              {filtered.length} de {rows.length} · Total:{" "}
+              <strong className="text-foreground">{eur(totalFiltered)}</strong>
+            </div>
+          </div>
+        </Card>
+
         <Card className="overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-muted">
               <tr className="text-left">
-                <th className="p-3">Número</th>
-                <th className="p-3">Fecha</th>
-                <th className="p-3">Cliente</th>
+                <th className="p-3 cursor-pointer select-none" onClick={() => toggleSort("invoice_number")}>
+                  Número<SortIcon k="invoice_number" />
+                </th>
+                <th className="p-3 cursor-pointer select-none" onClick={() => toggleSort("invoice_date")}>
+                  Fecha<SortIcon k="invoice_date" />
+                </th>
+                <th className="p-3 cursor-pointer select-none" onClick={() => toggleSort("client_name")}>
+                  Cliente<SortIcon k="client_name" />
+                </th>
                 <th className="p-3">Tipo</th>
-                <th className="p-3 text-right">Total</th>
+                <th className="p-3 text-right cursor-pointer select-none" onClick={() => toggleSort("total")}>
+                  Total<SortIcon k="total" />
+                </th>
                 <th className="p-3 text-center">Cobro</th>
                 <th className="p-3"></th>
               </tr>
             </thead>
             <tbody>
-              {rows.length === 0 && (
-                <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">Aún no hay facturas</td></tr>
+              {filtered.length === 0 && (
+                <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">Sin resultados</td></tr>
               )}
-              {rows.map((r) => (
+              {filtered.map((r) => (
                 <tr key={r.id} className="border-t">
                   <td className="p-3 font-mono">{r.invoice_number}</td>
                   <td className="p-3">{r.invoice_date}</td>
