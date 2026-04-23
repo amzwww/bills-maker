@@ -5,20 +5,26 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, FileDown, CheckCircle2, Search, X } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { ArrowLeft, FileDown, CheckCircle2, Search, X, Pencil, Save } from "lucide-react";
 import { eur } from "@/lib/invoiceCalc";
 import { generateInvoicePdf, type Issuer } from "@/lib/pdf";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 type Invoice = any;
 
 const Clients = () => {
+  const { isAdmin } = useAuth();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [issuers, setIssuers] = useState<Record<string, Issuer>>({});
   const [openClient, setOpenClient] = useState<string | null>(null);
   const [nameFilter, setNameFilter] = useState("");
   const [issuerFilter, setIssuerFilter] = useState<"all" | "JHE" | "BN">("all");
+  const [editClient, setEditClient] = useState<any | null>(null);
+  const [editForm, setEditForm] = useState<any>({});
+  const [savingEdit, setSavingEdit] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -112,6 +118,43 @@ const Clients = () => {
       total: parseFloat(inv.total),
       pre_payment_note: inv.pre_payment_note,
     });
+  };
+
+  const openEdit = (c: any) => {
+    const sample = c.invoices[0] || {};
+    setEditClient(c);
+    setEditForm({
+      client_name: c.name || "",
+      client_tax_id: c.tax_id || "",
+      client_address_line1: sample.client_address_line1 || "",
+      client_address_line2: sample.client_address_line2 || "",
+      client_city_zip: sample.client_city_zip || "",
+      client_country: sample.client_country || "",
+    });
+  };
+
+  const saveEdit = async () => {
+    if (!editClient) return;
+    setSavingEdit(true);
+    const ids = editClient.invoices.map((i: any) => i.id);
+    const { error } = await supabase
+      .from("invoices")
+      .update({
+        client_name: editForm.client_name,
+        client_tax_id: editForm.client_tax_id || null,
+        client_address_line1: editForm.client_address_line1 || null,
+        client_address_line2: editForm.client_address_line2 || null,
+        client_city_zip: editForm.client_city_zip || null,
+        client_country: editForm.client_country || null,
+      })
+      .in("id", ids);
+    setSavingEdit(false);
+    if (error) return toast.error(error.message);
+    toast.success(`Cliente actualizado en ${ids.length} facturas`);
+    const { data: invs } = await supabase.from("invoices").select("*").order("invoice_date", { ascending: false });
+    setInvoices(invs || []);
+    setEditClient(null);
+    setOpenClient(null);
   };
 
   const current = clients.find((c) => c.key === openClient);
@@ -209,7 +252,14 @@ const Clients = () => {
       <Dialog open={!!openClient} onOpenChange={(o) => !o && setOpenClient(null)}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>{current?.name}</DialogTitle>
+            <DialogTitle className="flex items-center gap-3 pr-8">
+              <span>{current?.name}</span>
+              {isAdmin && current && (
+                <Button size="sm" variant="outline" onClick={() => openEdit(current)}>
+                  <Pencil className="h-4 w-4 mr-1" /> Editar datos
+                </Button>
+              )}
+            </DialogTitle>
           </DialogHeader>
           {current && (
             <div className="space-y-2">
@@ -259,6 +309,53 @@ const Clients = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editClient} onOpenChange={(o) => !o && setEditClient(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Editar datos del cliente</DialogTitle>
+          </DialogHeader>
+          {editClient && (
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">
+                Los cambios se aplicarán a las <strong>{editClient.count}</strong> facturas de este cliente.
+              </p>
+              <div className="grid md:grid-cols-2 gap-3">
+                <div className="md:col-span-2">
+                  <Label>Nombre / Razón social</Label>
+                  <Input value={editForm.client_name} onChange={(e) => setEditForm({ ...editForm, client_name: e.target.value })} />
+                </div>
+                <div>
+                  <Label>NIF / CIF</Label>
+                  <Input value={editForm.client_tax_id} onChange={(e) => setEditForm({ ...editForm, client_tax_id: e.target.value })} />
+                </div>
+                <div>
+                  <Label>País</Label>
+                  <Input value={editForm.client_country} onChange={(e) => setEditForm({ ...editForm, client_country: e.target.value })} />
+                </div>
+                <div className="md:col-span-2">
+                  <Label>Dirección</Label>
+                  <Input value={editForm.client_address_line1} onChange={(e) => setEditForm({ ...editForm, client_address_line1: e.target.value })} />
+                </div>
+                <div className="md:col-span-2">
+                  <Label>Dirección 2</Label>
+                  <Input value={editForm.client_address_line2} onChange={(e) => setEditForm({ ...editForm, client_address_line2: e.target.value })} />
+                </div>
+                <div className="md:col-span-2">
+                  <Label>CP y ciudad</Label>
+                  <Input value={editForm.client_city_zip} onChange={(e) => setEditForm({ ...editForm, client_city_zip: e.target.value })} />
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditClient(null)}>Cancelar</Button>
+            <Button onClick={saveEdit} disabled={savingEdit}>
+              <Save className="h-4 w-4 mr-1" /> {savingEdit ? "Guardando…" : "Guardar cambios"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
