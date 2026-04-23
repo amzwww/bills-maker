@@ -30,11 +30,13 @@ import {
 import { eur } from "@/lib/invoiceCalc";
 import { generateInvoicePdf, type Issuer } from "@/lib/pdf";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 type SortKey = "invoice_number" | "invoice_date" | "client_name" | "total";
 type SortDir = "asc" | "desc";
 
 const InvoicesList = () => {
+  const { isAdmin } = useAuth();
   const [rows, setRows] = useState<any[]>([]);
   const [issuers, setIssuers] = useState<Record<string, Issuer>>({});
   const [payOpen, setPayOpen] = useState<any | null>(null);
@@ -380,20 +382,24 @@ const InvoicesList = () => {
                             <ExternalLink className="h-3 w-3" />
                           </Button>
                         )}
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-6 w-6"
-                          onClick={() => undoPaid(r)}
-                          title="Deshacer cobro"
-                        >
-                          <Undo2 className="h-3 w-3" />
-                        </Button>
+                        {isAdmin && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-6 w-6"
+                            onClick={() => undoPaid(r)}
+                            title="Deshacer cobro"
+                          >
+                            <Undo2 className="h-3 w-3" />
+                          </Button>
+                        )}
                       </div>
-                    ) : (
+                    ) : isAdmin ? (
                       <Button size="sm" variant="outline" onClick={() => openPaid(r)}>
                         <CheckCircle2 className="h-4 w-4 mr-1" />Cobrada
                       </Button>
+                    ) : (
+                      <Badge variant="outline">Pendiente</Badge>
                     )}
                   </td>
                   <td className="p-3 text-right">
