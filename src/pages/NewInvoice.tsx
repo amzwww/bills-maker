@@ -54,6 +54,58 @@ const NewInvoice = () => {
   // Notas
   const [prePaymentKey, setPrePaymentKey] = useState<PrePaymentKey>("none");
 
+  // Extracción IA desde captura
+  const [extracting, setExtracting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageFile = async (file: File) => {
+    setExtracting(true);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result.split(",")[1]);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const { data, error } = await supabase.functions.invoke("extract-client", {
+        body: { imageBase64: base64, mimeType: file.type },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data.client_name) setClientName(data.client_name);
+      if (data.client_tax_id) setClientTaxId(data.client_tax_id);
+      if (data.client_address_line1) setClientAddr1(data.client_address_line1);
+      if (data.client_address_line2) setClientAddr2(data.client_address_line2);
+      if (data.client_city_zip) setClientCityZip(data.client_city_zip);
+      if (data.client_country) setClientCountry(data.client_country);
+      if (typeof data.is_foreign === "boolean") {
+        setIsForeign(data.is_foreign);
+        if (data.is_foreign) setIsCanary(false);
+      }
+      if (typeof data.is_canary === "boolean") {
+        setIsCanary(data.is_canary);
+        if (data.is_canary) setIsForeign(false);
+      }
+      toast.success("Datos del cliente extraídos");
+    } catch (e: any) {
+      toast.error(e.message || "Error extrayendo datos");
+    } finally {
+      setExtracting(false);
+    }
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent) => {
+    const item = Array.from(e.clipboardData.items).find((i) => i.type.startsWith("image/"));
+    if (item) {
+      e.preventDefault();
+      const file = item.getAsFile();
+      if (file) await handleImageFile(file);
+    }
+  };
+
   // Cargar emisor + preview número
   useEffect(() => {
     (async () => {
