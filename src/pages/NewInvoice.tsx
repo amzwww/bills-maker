@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Plus, Trash2, FileDown, Camera, Loader2 } from "lucide-react";
 import { useRef } from "react";
 import { toast } from "sonner";
-import { computeSubtotal, computeTaxes, eur, round2, type LineItem } from "@/lib/invoiceCalc";
+import { classifyInvoice, computeSubtotal, computeTaxes, eur, round2, type LineItem } from "@/lib/invoiceCalc";
 import { COMPLEMENT_INDENTED_LINE, PRE_PAYMENT_NOTES, POST_PAYMENT_NOTE, ponenciaDescription, type PrePaymentKey } from "@/lib/invoiceTexts";
 import { generateInvoicePdf, type Issuer } from "@/lib/pdf";
 
@@ -207,7 +207,7 @@ const NewInvoice = () => {
         invoice_number: invoiceNumber,
         year,
         seq,
-        invoice_type: type,
+        invoice_type: type === "complemento" ? "complemento" : classifyInvoice(items),
         invoice_date: invoiceDate,
         parent_invoice_number: type === "complemento" ? parentInvoice : null,
         our_reference: ourReference || null,
