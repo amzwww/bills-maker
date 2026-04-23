@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Plus, Trash2, FileDown } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, FileDown, Camera, Loader2 } from "lucide-react";
+import { useRef } from "react";
 import { toast } from "sonner";
 import { computeSubtotal, computeTaxes, eur, round2, type LineItem } from "@/lib/invoiceCalc";
 import { COMPLEMENT_INDENTED_LINE, PRE_PAYMENT_NOTES, POST_PAYMENT_NOTE, ponenciaDescription, type PrePaymentKey } from "@/lib/invoiceTexts";
@@ -52,6 +53,58 @@ const NewInvoice = () => {
 
   // Notas
   const [prePaymentKey, setPrePaymentKey] = useState<PrePaymentKey>("none");
+
+  // Extracción IA desde captura
+  const [extracting, setExtracting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageFile = async (file: File) => {
+    setExtracting(true);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result.split(",")[1]);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const { data, error } = await supabase.functions.invoke("extract-client", {
+        body: { imageBase64: base64, mimeType: file.type },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data.client_name) setClientName(data.client_name);
+      if (data.client_tax_id) setClientTaxId(data.client_tax_id);
+      if (data.client_address_line1) setClientAddr1(data.client_address_line1);
+      if (data.client_address_line2) setClientAddr2(data.client_address_line2);
+      if (data.client_city_zip) setClientCityZip(data.client_city_zip);
+      if (data.client_country) setClientCountry(data.client_country);
+      if (typeof data.is_foreign === "boolean") {
+        setIsForeign(data.is_foreign);
+        if (data.is_foreign) setIsCanary(false);
+      }
+      if (typeof data.is_canary === "boolean") {
+        setIsCanary(data.is_canary);
+        if (data.is_canary) setIsForeign(false);
+      }
+      toast.success("Datos del cliente extraídos");
+    } catch (e: any) {
+      toast.error(e.message || "Error extrayendo datos");
+    } finally {
+      setExtracting(false);
+    }
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent) => {
+    const item = Array.from(e.clipboardData.items).find((i) => i.type.startsWith("image/"));
+    if (item) {
+      e.preventDefault();
+      const file = item.getAsFile();
+      if (file) await handleImageFile(file);
+    }
+  };
 
   // Cargar emisor + preview número
   useEffect(() => {
@@ -267,8 +320,34 @@ const NewInvoice = () => {
         </Card>
 
         {/* Cliente */}
-        <Card className="p-6 space-y-4">
-          <h2 className="font-semibold">Cliente</h2>
+        <Card className="p-6 space-y-4" onPaste={handlePaste}>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h2 className="font-semibold">Cliente</h2>
+            <div className="flex items-center gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleImageFile(f);
+                  e.target.value = "";
+                }}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                disabled={extracting}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {extracting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Camera className="h-4 w-4 mr-2" />}
+                {extracting ? "Extrayendo..." : "Subir captura del cliente"}
+              </Button>
+              <span className="text-xs text-muted-foreground">o pega (Ctrl+V) aquí</span>
+            </div>
+          </div>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <Label>Nombre / Razón social *</Label>
