@@ -328,6 +328,39 @@ const NewInvoice = () => {
       </header>
 
       <main className="container py-6 space-y-6 max-w-4xl">
+        {gaps.length > 0 && (
+          <Card className="p-4 border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="flex-1 text-sm">
+                <strong>Huecos en la numeración:</strong> existe(n) número(s) eliminado(s):{" "}
+                <span className="font-mono">
+                  {gaps.map((g) => `${issuerId}-${invoiceDate.slice(0, 4)}-${String(g).padStart(3, "0")}`).join(", ")}
+                </span>
+                . ¿Quieres reutilizar uno en lugar del{" "}
+                <span className="font-mono">{nextSeq ? `${issuerId}-${invoiceDate.slice(0, 4)}-${String(nextSeq).padStart(3, "0")}` : "..."}</span>?
+              </div>
+              <div className="flex items-center gap-2">
+                <Select
+                  value={chosenSeq?.toString() ?? "next"}
+                  onValueChange={(v) => setChosenSeq(v === "next" ? null : parseInt(v))}
+                >
+                  <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="next">
+                      Siguiente ({nextSeq ? String(nextSeq).padStart(3, "0") : "..."})
+                    </SelectItem>
+                    {gaps.map((g) => (
+                      <SelectItem key={g} value={g.toString()}>
+                        Reutilizar {String(g).padStart(3, "0")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* Datos básicos */}
         <Card className="p-6 space-y-4">
           <h2 className="font-semibold">Datos de la factura</h2>
