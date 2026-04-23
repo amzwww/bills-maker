@@ -13,6 +13,7 @@ import InvoicesList from "./pages/InvoicesList.tsx";
 import Clients from "./pages/Clients.tsx";
 import Settings from "./pages/Settings.tsx";
 import Auth from "./pages/Auth.tsx";
+import ResetPassword from "./pages/ResetPassword.tsx";
 
 const queryClient = new QueryClient();
 
