@@ -252,7 +252,14 @@ const Clients = () => {
       <Dialog open={!!openClient} onOpenChange={(o) => !o && setOpenClient(null)}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>{current?.name}</DialogTitle>
+            <DialogTitle className="flex items-center gap-3 pr-8">
+              <span>{current?.name}</span>
+              {isAdmin && current && (
+                <Button size="sm" variant="outline" onClick={() => openEdit(current)}>
+                  <Pencil className="h-4 w-4 mr-1" /> Editar datos
+                </Button>
+              )}
+            </DialogTitle>
           </DialogHeader>
           {current && (
             <div className="space-y-2">
