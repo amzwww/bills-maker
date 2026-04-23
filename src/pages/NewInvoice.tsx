@@ -207,7 +207,7 @@ const NewInvoice = () => {
         invoice_number: invoiceNumber,
         year,
         seq,
-        invoice_type: type,
+        invoice_type: type === "complemento" ? "complemento" : classifyInvoice(items),
         invoice_date: invoiceDate,
         parent_invoice_number: type === "complemento" ? parentInvoice : null,
         our_reference: ourReference || null,
