@@ -329,7 +329,7 @@ const NewInvoice = () => {
 
       <main className="container py-6 space-y-6 max-w-4xl">
         {gaps.length > 0 && (
-          <Card className="p-4 border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
+          <Card className="p-4 border-primary/40 bg-muted">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <div className="flex-1 text-sm">
                 <strong>Huecos en la numeración:</strong> existe(n) número(s) eliminado(s):{" "}
