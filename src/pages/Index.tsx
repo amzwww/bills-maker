@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Settings, List } from "lucide-react";
+import { FileText, Settings, List, Users } from "lucide-react";
 
 const Index = () => {
   return (
@@ -15,6 +15,9 @@ const Index = () => {
           <div className="flex gap-2">
             <Button asChild variant="outline" size="sm">
               <Link to="/facturas"><List className="h-4 w-4 mr-2" />Facturas</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/clientes"><Users className="h-4 w-4 mr-2" />Clientes</Link>
             </Button>
             <Button asChild variant="outline" size="sm">
               <Link to="/ajustes"><Settings className="h-4 w-4 mr-2" />Emisores</Link>
