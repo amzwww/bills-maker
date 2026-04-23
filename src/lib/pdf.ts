@@ -204,33 +204,24 @@ export function generateInvoicePdf(data: InvoicePdfData) {
     cursor += lines.length * 4 + 4;
   }
 
-  // Forma de pago
+  // Forma de pago (etiquetas alineadas en columna)
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
   doc.text("Forma de pago:", margin, cursor);
   cursor += 5;
-  doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  if (data.issuer.ccc) {
+  const labelX = margin;
+  const valueX = margin + 38; // columna fija de valores
+  const payRows: { label: string; value: string }[] = [];
+  if (data.issuer.ccc) payRows.push({ label: "CCC:", value: data.issuer.ccc });
+  if (data.issuer.iban) payRows.push({ label: "IBAN:", value: data.issuer.iban });
+  if (data.issuer.swift) payRows.push({ label: "SWIFT:", value: data.issuer.swift });
+  for (const row of payRows) {
     doc.setFont("helvetica", "bold");
-    doc.text("CCC:", margin, cursor);
+    doc.text(row.label, labelX, cursor);
     doc.setFont("helvetica", "normal");
-    doc.text(data.issuer.ccc, margin + 22, cursor);
-    cursor += 4;
-  }
-  if (data.issuer.iban) {
-    doc.setFont("helvetica", "bold");
-    doc.text("Electronic IBAN:", margin, cursor);
-    doc.setFont("helvetica", "normal");
-    doc.text(data.issuer.iban, margin + 32, cursor);
-    cursor += 4;
-  }
-  if (data.issuer.swift) {
-    doc.setFont("helvetica", "bold");
-    doc.text("Swift:", margin, cursor);
-    doc.setFont("helvetica", "normal");
-    doc.text(data.issuer.swift, margin + 22, cursor);
-    cursor += 4;
+    doc.text(row.value, valueX, cursor);
+    cursor += 5;
   }
 
   cursor += 4;
