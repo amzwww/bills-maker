@@ -210,6 +210,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      find_invoice_gaps: {
+        Args: { _issuer_id: string; _year: number }
+        Returns: {
+          missing_seq: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

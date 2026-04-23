@@ -26,6 +26,9 @@ const NewInvoice = () => {
   const [issuer, setIssuer] = useState<Issuer | null>(null);
   const [loading, setLoading] = useState(false);
   const [previewNumber, setPreviewNumber] = useState<string>("");
+  const [nextSeq, setNextSeq] = useState<number | null>(null);
+  const [gaps, setGaps] = useState<number[]>([]);
+  const [chosenSeq, setChosenSeq] = useState<number | null>(null);
 
   // Cabecera
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0, 10));
@@ -118,18 +121,32 @@ const NewInvoice = () => {
     }
   };
 
-  // Cargar emisor + preview número
+  // Cargar emisor + preview número + huecos
   useEffect(() => {
     (async () => {
       const { data } = await supabase.from("issuers").select("*").eq("id", issuerId).single();
       if (data) setIssuer(data as Issuer);
       const year = parseInt(invoiceDate.slice(0, 4));
       const { data: seqData } = await supabase.rpc("next_invoice_seq", { _issuer_id: issuerId, _year: year });
+      const { data: gapsData } = await supabase.rpc("find_invoice_gaps" as any, { _issuer_id: issuerId, _year: year });
+      const gapsList: number[] = Array.isArray(gapsData)
+        ? gapsData.map((g: any) => (typeof g === "number" ? g : g.missing_seq)).filter((n: any) => typeof n === "number")
+        : [];
+      setGaps(gapsList);
       if (typeof seqData === "number") {
-        setPreviewNumber(`${issuerId}-${year}-${String(seqData).padStart(3, "0")}`);
+        setNextSeq(seqData);
       }
     })();
   }, [issuerId, invoiceDate]);
+
+  // Recalcular preview cuando cambia chosenSeq o nextSeq
+  useEffect(() => {
+    const year = parseInt(invoiceDate.slice(0, 4));
+    const useSeq = chosenSeq ?? nextSeq;
+    if (typeof useSeq === "number") {
+      setPreviewNumber(`${issuerId}-${year}-${String(useSeq).padStart(3, "0")}`);
+    }
+  }, [chosenSeq, nextSeq, issuerId, invoiceDate]);
 
   // Auto-rellenar primera línea según tipo
   useEffect(() => {
@@ -193,21 +210,42 @@ const NewInvoice = () => {
     setLoading(true);
     try {
       const year = parseInt(invoiceDate.slice(0, 4));
-      const { data: seq, error: seqErr } = await supabase.rpc("next_invoice_seq", {
-        _issuer_id: issuerId,
-        _year: year,
-      });
-      if (seqErr || typeof seq !== "number") throw seqErr || new Error("No seq");
+      let seq: number;
+      if (typeof chosenSeq === "number") {
+        // Verificar que el hueco sigue libre
+        const { data: existing } = await supabase
+          .from("invoices")
+          .select("id")
+          .eq("issuer_id", issuerId)
+          .eq("year", year)
+          .eq("seq", chosenSeq)
+          .maybeSingle();
+        if (existing) {
+          toast.error(`El número ${chosenSeq} ya ha sido reutilizado. Recarga la página.`);
+          setLoading(false);
+          return;
+        }
+        seq = chosenSeq;
+      } else {
+        const { data: seqData, error: seqErr } = await supabase.rpc("next_invoice_seq", {
+          _issuer_id: issuerId,
+          _year: year,
+        });
+        if (seqErr || typeof seqData !== "number") throw seqErr || new Error("No seq");
+        seq = seqData;
+      }
       const invoiceNumber = `${issuerId}-${year}-${String(seq).padStart(3, "0")}`;
 
       const prePaymentText = PRE_PAYMENT_NOTES[prePaymentKey].text || null;
+
+      const computedType = type === "complemento" ? "complemento" : classifyInvoice(items);
 
       const payload = {
         issuer_id: issuerId,
         invoice_number: invoiceNumber,
         year,
         seq,
-        invoice_type: type === "complemento" ? "complemento" : classifyInvoice(items),
+        invoice_type: computedType,
         invoice_date: invoiceDate,
         parent_invoice_number: type === "complemento" ? parentInvoice : null,
         our_reference: ourReference || null,
@@ -229,7 +267,7 @@ const NewInvoice = () => {
         irpf_amount: taxes.irpf_amount,
         total,
         pre_payment_note: prePaymentText,
-        post_payment_note: POST_PAYMENT_NOTE,
+        post_payment_note: computedType === "sponsor" ? null : POST_PAYMENT_NOTE,
       };
 
       const { error } = await supabase.from("invoices").insert(payload);
@@ -259,6 +297,7 @@ const NewInvoice = () => {
           irpf_amount: taxes.irpf_amount,
           total,
           pre_payment_note: prePaymentText,
+          invoice_type: computedType,
         });
       }
 
@@ -289,6 +328,39 @@ const NewInvoice = () => {
       </header>
 
       <main className="container py-6 space-y-6 max-w-4xl">
+        {gaps.length > 0 && (
+          <Card className="p-4 border-primary/40 bg-muted">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="flex-1 text-sm">
+                <strong>Huecos en la numeración:</strong> existe(n) número(s) eliminado(s):{" "}
+                <span className="font-mono">
+                  {gaps.map((g) => `${issuerId}-${invoiceDate.slice(0, 4)}-${String(g).padStart(3, "0")}`).join(", ")}
+                </span>
+                . ¿Quieres reutilizar uno en lugar del{" "}
+                <span className="font-mono">{nextSeq ? `${issuerId}-${invoiceDate.slice(0, 4)}-${String(nextSeq).padStart(3, "0")}` : "..."}</span>?
+              </div>
+              <div className="flex items-center gap-2">
+                <Select
+                  value={chosenSeq?.toString() ?? "next"}
+                  onValueChange={(v) => setChosenSeq(v === "next" ? null : parseInt(v))}
+                >
+                  <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="next">
+                      Siguiente ({nextSeq ? String(nextSeq).padStart(3, "0") : "..."})
+                    </SelectItem>
+                    {gaps.map((g) => (
+                      <SelectItem key={g} value={g.toString()}>
+                        Reutilizar {String(g).padStart(3, "0")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* Datos básicos */}
         <Card className="p-6 space-y-4">
           <h2 className="font-semibold">Datos de la factura</h2>
