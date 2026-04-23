@@ -96,7 +96,43 @@
     @apply border-border;
   }
 
+  html {
+    /* Reducción global automática de tipografía en móvil */
+    font-size: 16px;
+  }
+
+  @media (max-width: 767px) {
+    html {
+      font-size: 14px;
+    }
+  }
+
   body {
     @apply bg-background text-foreground;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Permitir orientación horizontal (no bloqueamos rotación) */
+
+  /* Contenedor con scroll horizontal cuando el contenido se desborda */
+  .scroll-x {
+    @apply overflow-x-auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Tabla responsive: scroll horizontal en móvil */
+  .table-wrap {
+    @apply w-full overflow-x-auto overflow-y-auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  /* Safe areas en iOS instalado */
+  @supports (padding: env(safe-area-inset-top)) {
+    body {
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
   }
 }
