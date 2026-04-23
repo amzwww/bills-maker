@@ -210,21 +210,42 @@ const NewInvoice = () => {
     setLoading(true);
     try {
       const year = parseInt(invoiceDate.slice(0, 4));
-      const { data: seq, error: seqErr } = await supabase.rpc("next_invoice_seq", {
-        _issuer_id: issuerId,
-        _year: year,
-      });
-      if (seqErr || typeof seq !== "number") throw seqErr || new Error("No seq");
+      let seq: number;
+      if (typeof chosenSeq === "number") {
+        // Verificar que el hueco sigue libre
+        const { data: existing } = await supabase
+          .from("invoices")
+          .select("id")
+          .eq("issuer_id", issuerId)
+          .eq("year", year)
+          .eq("seq", chosenSeq)
+          .maybeSingle();
+        if (existing) {
+          toast.error(`El número ${chosenSeq} ya ha sido reutilizado. Recarga la página.`);
+          setLoading(false);
+          return;
+        }
+        seq = chosenSeq;
+      } else {
+        const { data: seqData, error: seqErr } = await supabase.rpc("next_invoice_seq", {
+          _issuer_id: issuerId,
+          _year: year,
+        });
+        if (seqErr || typeof seqData !== "number") throw seqErr || new Error("No seq");
+        seq = seqData;
+      }
       const invoiceNumber = `${issuerId}-${year}-${String(seq).padStart(3, "0")}`;
 
       const prePaymentText = PRE_PAYMENT_NOTES[prePaymentKey].text || null;
+
+      const computedType = type === "complemento" ? "complemento" : classifyInvoice(items);
 
       const payload = {
         issuer_id: issuerId,
         invoice_number: invoiceNumber,
         year,
         seq,
-        invoice_type: type === "complemento" ? "complemento" : classifyInvoice(items),
+        invoice_type: computedType,
         invoice_date: invoiceDate,
         parent_invoice_number: type === "complemento" ? parentInvoice : null,
         our_reference: ourReference || null,
