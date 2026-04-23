@@ -442,9 +442,22 @@ const InvoicesList = () => {
                       )}
                     </td>
                     <td className="p-3 text-right">
-                      <Button size="sm" variant="outline" onClick={() => downloadPdf(r)}>
-                        <FileDown className="h-4 w-4 mr-1" />PDF
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button size="sm" variant="outline" onClick={() => downloadPdf(r)}>
+                          <FileDown className="h-4 w-4 mr-1" />PDF
+                        </Button>
+                        {isAdmin && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openDelete(r)}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            title="Eliminar factura"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
