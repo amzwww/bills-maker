@@ -33,7 +33,7 @@ const Clients = () => {
     })();
   }, []);
 
-  // Agrupar por cliente (clave: nombre normalizado)
+  // Agrupar por cliente + emisor
   const clients = useMemo(() => {
     const groups = new Map<
       string,
@@ -41,6 +41,7 @@ const Clients = () => {
         key: string;
         name: string;
         tax_id: string;
+        issuer_id: string;
         count: number;
         total: number;
         paid: number;
@@ -49,8 +50,9 @@ const Clients = () => {
       }
     >();
     for (const inv of invoices) {
-      const key = (inv.client_name || "").trim().toLowerCase();
-      if (!key) continue;
+      const nameKey = (inv.client_name || "").trim().toLowerCase();
+      if (!nameKey) continue;
+      const key = `${inv.issuer_id}::${nameKey}`;
       const total = parseFloat(inv.total) || 0;
       const isPaid = !!inv.paid;
       const g =
@@ -59,6 +61,7 @@ const Clients = () => {
           key,
           name: inv.client_name,
           tax_id: inv.client_tax_id || "",
+          issuer_id: inv.issuer_id,
           count: 0,
           total: 0,
           paid: 0,
@@ -74,6 +77,15 @@ const Clients = () => {
     }
     return Array.from(groups.values()).sort((a, b) => b.total - a.total);
   }, [invoices]);
+
+  const filteredClients = useMemo(() => {
+    const q = nameFilter.trim().toLowerCase();
+    return clients.filter((c) => {
+      if (issuerFilter !== "all" && c.issuer_id !== issuerFilter) return false;
+      if (q && !c.name.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [clients, nameFilter, issuerFilter]);
 
   const downloadPdf = (inv: Invoice) => {
     const issuer = issuers[inv.issuer_id];
