@@ -311,6 +311,53 @@ const Clients = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!editClient} onOpenChange={(o) => !o && setEditClient(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Editar datos del cliente</DialogTitle>
+          </DialogHeader>
+          {editClient && (
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">
+                Los cambios se aplicarán a las <strong>{editClient.count}</strong> facturas de este cliente.
+              </p>
+              <div className="grid md:grid-cols-2 gap-3">
+                <div className="md:col-span-2">
+                  <Label>Nombre / Razón social</Label>
+                  <Input value={editForm.client_name} onChange={(e) => setEditForm({ ...editForm, client_name: e.target.value })} />
+                </div>
+                <div>
+                  <Label>NIF / CIF</Label>
+                  <Input value={editForm.client_tax_id} onChange={(e) => setEditForm({ ...editForm, client_tax_id: e.target.value })} />
+                </div>
+                <div>
+                  <Label>País</Label>
+                  <Input value={editForm.client_country} onChange={(e) => setEditForm({ ...editForm, client_country: e.target.value })} />
+                </div>
+                <div className="md:col-span-2">
+                  <Label>Dirección</Label>
+                  <Input value={editForm.client_address_line1} onChange={(e) => setEditForm({ ...editForm, client_address_line1: e.target.value })} />
+                </div>
+                <div className="md:col-span-2">
+                  <Label>Dirección 2</Label>
+                  <Input value={editForm.client_address_line2} onChange={(e) => setEditForm({ ...editForm, client_address_line2: e.target.value })} />
+                </div>
+                <div className="md:col-span-2">
+                  <Label>CP y ciudad</Label>
+                  <Input value={editForm.client_city_zip} onChange={(e) => setEditForm({ ...editForm, client_city_zip: e.target.value })} />
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditClient(null)}>Cancelar</Button>
+            <Button onClick={saveEdit} disabled={savingEdit}>
+              <Save className="h-4 w-4 mr-1" /> {savingEdit ? "Guardando…" : "Guardar cambios"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
