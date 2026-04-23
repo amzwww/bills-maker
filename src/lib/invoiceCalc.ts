@@ -41,3 +41,34 @@ export function eur(n: number) {
     minimumFractionDigits: 2,
   }).format(n);
 }
+
+export type InvoiceType = "ponencia" | "gastos" | "mixta" | "sponsor" | "complemento";
+
+/**
+ * Clasifica el tipo de factura por contenido de líneas:
+ * - ponencia: línea con "ponencia" e importe > 0 (sin gasto con importe)
+ * - gastos: línea que empieza por "gastos"/"costes" con importe (sin ponencia con importe)
+ * - mixta: ambas con importe
+ * - sponsor: ninguna
+ */
+export function classifyInvoice(items: LineItem[]): InvoiceType {
+  const real = items.filter((it) => !it.parent_header);
+  let hasPon = false;
+  let hasGas = false;
+  for (const it of real) {
+    const d = (it.description || "").trim().toLowerCase();
+    const price = Number(it.unit_price || 0);
+    const isGas =
+      d.startsWith("gastos") ||
+      d.startsWith("costes") ||
+      d.startsWith("coste ") ||
+      d.startsWith("desplaza");
+    const isPon = d.includes("ponencia") && !isGas;
+    if (isPon && price > 0) hasPon = true;
+    else if (isGas && price > 0) hasGas = true;
+  }
+  if (hasPon && hasGas) return "mixta";
+  if (hasPon) return "ponencia";
+  if (hasGas) return "gastos";
+  return "sponsor";
+}
