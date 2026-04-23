@@ -320,8 +320,34 @@ const NewInvoice = () => {
         </Card>
 
         {/* Cliente */}
-        <Card className="p-6 space-y-4">
-          <h2 className="font-semibold">Cliente</h2>
+        <Card className="p-6 space-y-4" onPaste={handlePaste}>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h2 className="font-semibold">Cliente</h2>
+            <div className="flex items-center gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleImageFile(f);
+                  e.target.value = "";
+                }}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                disabled={extracting}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {extracting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Camera className="h-4 w-4 mr-2" />}
+                {extracting ? "Extrayendo..." : "Subir captura del cliente"}
+              </Button>
+              <span className="text-xs text-muted-foreground">o pega (Ctrl+V) aquí</span>
+            </div>
+          </div>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <Label>Nombre / Razón social *</Label>
