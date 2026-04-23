@@ -35,7 +35,10 @@ export type Database = {
           line_items: Json
           notes: string | null
           our_reference: string | null
+          paid: boolean
+          paid_at: string | null
           parent_invoice_number: string | null
+          payment_proof_url: string | null
           post_payment_note: string | null
           pre_payment_note: string | null
           seq: number
@@ -69,7 +72,10 @@ export type Database = {
           line_items?: Json
           notes?: string | null
           our_reference?: string | null
+          paid?: boolean
+          paid_at?: string | null
           parent_invoice_number?: string | null
+          payment_proof_url?: string | null
           post_payment_note?: string | null
           pre_payment_note?: string | null
           seq: number
@@ -103,7 +109,10 @@ export type Database = {
           line_items?: Json
           notes?: string | null
           our_reference?: string | null
+          paid?: boolean
+          paid_at?: string | null
           parent_invoice_number?: string | null
+          payment_proof_url?: string | null
           post_payment_note?: string | null
           pre_payment_note?: string | null
           seq?: number
