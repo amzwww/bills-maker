@@ -120,6 +120,43 @@ const Clients = () => {
     });
   };
 
+  const openEdit = (c: any) => {
+    const sample = c.invoices[0] || {};
+    setEditClient(c);
+    setEditForm({
+      client_name: c.name || "",
+      client_tax_id: c.tax_id || "",
+      client_address_line1: sample.client_address_line1 || "",
+      client_address_line2: sample.client_address_line2 || "",
+      client_city_zip: sample.client_city_zip || "",
+      client_country: sample.client_country || "",
+    });
+  };
+
+  const saveEdit = async () => {
+    if (!editClient) return;
+    setSavingEdit(true);
+    const ids = editClient.invoices.map((i: any) => i.id);
+    const { error } = await supabase
+      .from("invoices")
+      .update({
+        client_name: editForm.client_name,
+        client_tax_id: editForm.client_tax_id || null,
+        client_address_line1: editForm.client_address_line1 || null,
+        client_address_line2: editForm.client_address_line2 || null,
+        client_city_zip: editForm.client_city_zip || null,
+        client_country: editForm.client_country || null,
+      })
+      .in("id", ids);
+    setSavingEdit(false);
+    if (error) return toast.error(error.message);
+    toast.success(`Cliente actualizado en ${ids.length} facturas`);
+    const { data: invs } = await supabase.from("invoices").select("*").order("invoice_date", { ascending: false });
+    setInvoices(invs || []);
+    setEditClient(null);
+    setOpenClient(null);
+  };
+
   const current = clients.find((c) => c.key === openClient);
 
   const issuerBadge = (id: string) => {
