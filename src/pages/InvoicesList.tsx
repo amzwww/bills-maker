@@ -55,6 +55,7 @@ const InvoicesList = () => {
   const [clientFilter, setClientFilter] = useState("");
   const [conceptFilter, setConceptFilter] = useState("");
   const [issuerFilter, setIssuerFilter] = useState<"all" | "JHE" | "BN">("all");
+  const [paidFilter, setPaidFilter] = useState<"all" | "unpaid" | "paid">("all");
   const [sortKey, setSortKey] = useState<SortKey>("invoice_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
@@ -218,7 +219,10 @@ const InvoicesList = () => {
       const okClient = !cf || (r.client_name || "").toLowerCase().includes(cf);
       const okConcept = !xf || conceptsOf(r).toLowerCase().includes(xf);
       const okIssuer = issuerFilter === "all" || r.issuer_id === issuerFilter;
-      return okClient && okConcept && okIssuer;
+      const okPaid =
+        paidFilter === "all" ||
+        (paidFilter === "paid" ? r.paid : !r.paid);
+      return okClient && okConcept && okIssuer && okPaid;
     });
     const dir = sortDir === "asc" ? 1 : -1;
     list = [...list].sort((a, b) => {
@@ -242,7 +246,7 @@ const InvoicesList = () => {
       return 0;
     });
     return list;
-  }, [rows, clientFilter, conceptFilter, issuerFilter, sortKey, sortDir]);
+  }, [rows, clientFilter, conceptFilter, issuerFilter, paidFilter, sortKey, sortDir]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
@@ -312,7 +316,7 @@ const InvoicesList = () => {
       </header>
       <main className="container py-6 space-y-4">
         <Card className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto_auto] gap-3 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto_auto_auto] gap-3 items-end">
             <div>
               <Label className="text-xs">Filtrar por cliente</Label>
               <div className="relative">
@@ -363,6 +367,22 @@ const InvoicesList = () => {
                     onClick={() => setIssuerFilter(v)}
                   >
                     {v === "all" ? "Todos" : v === "JHE" ? "Jon" : "Bright"}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs">Cobro</Label>
+              <div className="flex gap-1">
+                {(["all", "unpaid", "paid"] as const).map((v) => (
+                  <Button
+                    key={v}
+                    type="button"
+                    size="sm"
+                    variant={paidFilter === v ? "default" : "outline"}
+                    onClick={() => setPaidFilter(v)}
+                  >
+                    {v === "all" ? "Todas" : v === "unpaid" ? "No cobradas" : "Cobradas"}
                   </Button>
                 ))}
               </div>
