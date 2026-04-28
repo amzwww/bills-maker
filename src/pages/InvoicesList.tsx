@@ -458,6 +458,16 @@ const InvoicesList = () => {
                         <Button size="sm" variant="outline" onClick={() => downloadPdf(r)}>
                           <FileDown className="h-4 w-4 mr-1" />PDF
                         </Button>
+                        {r.source_pdf_url && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => viewSourcePdf(r.source_pdf_url)}
+                            title={r.source_pdf_name || "PDF de origen"}
+                          >
+                            <FileText className="h-4 w-4 mr-1" />Origen
+                          </Button>
+                        )}
                         {isAdmin && (
                           <Button
                             size="sm"
