@@ -316,7 +316,7 @@ const InvoicesList = () => {
       </header>
       <main className="container py-6 space-y-4">
         <Card className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto_auto] gap-3 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto_auto_auto] gap-3 items-end">
             <div>
               <Label className="text-xs">Filtrar por cliente</Label>
               <div className="relative">
@@ -367,6 +367,22 @@ const InvoicesList = () => {
                     onClick={() => setIssuerFilter(v)}
                   >
                     {v === "all" ? "Todos" : v === "JHE" ? "Jon" : "Bright"}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs">Cobro</Label>
+              <div className="flex gap-1">
+                {(["all", "unpaid", "paid"] as const).map((v) => (
+                  <Button
+                    key={v}
+                    type="button"
+                    size="sm"
+                    variant={paidFilter === v ? "default" : "outline"}
+                    onClick={() => setPaidFilter(v)}
+                  >
+                    {v === "all" ? "Todas" : v === "unpaid" ? "No cobradas" : "Cobradas"}
                   </Button>
                 ))}
               </div>
