@@ -55,6 +55,7 @@ const InvoicesList = () => {
   const [clientFilter, setClientFilter] = useState("");
   const [conceptFilter, setConceptFilter] = useState("");
   const [issuerFilter, setIssuerFilter] = useState<"all" | "JHE" | "BN">("all");
+  const [paidFilter, setPaidFilter] = useState<"all" | "unpaid" | "paid">("all");
   const [sortKey, setSortKey] = useState<SortKey>("invoice_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
