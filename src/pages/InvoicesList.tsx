@@ -163,6 +163,14 @@ const InvoicesList = () => {
     window.open(data.signedUrl, "_blank");
   };
 
+  const viewSourcePdf = async (path: string) => {
+    const { data, error } = await supabase.storage
+      .from("invoice-sources")
+      .createSignedUrl(path, 60 * 5);
+    if (error || !data?.signedUrl) return toast.error("No se pudo abrir el PDF de origen");
+    window.open(data.signedUrl, "_blank");
+  };
+
   const openDelete = (inv: any) => {
     setDeleteOpen(inv);
     setDeleteConfirmText("");
