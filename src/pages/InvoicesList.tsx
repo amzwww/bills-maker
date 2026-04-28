@@ -219,7 +219,10 @@ const InvoicesList = () => {
       const okClient = !cf || (r.client_name || "").toLowerCase().includes(cf);
       const okConcept = !xf || conceptsOf(r).toLowerCase().includes(xf);
       const okIssuer = issuerFilter === "all" || r.issuer_id === issuerFilter;
-      return okClient && okConcept && okIssuer;
+      const okPaid =
+        paidFilter === "all" ||
+        (paidFilter === "paid" ? r.paid : !r.paid);
+      return okClient && okConcept && okIssuer && okPaid;
     });
     const dir = sortDir === "asc" ? 1 : -1;
     list = [...list].sort((a, b) => {
@@ -243,7 +246,7 @@ const InvoicesList = () => {
       return 0;
     });
     return list;
-  }, [rows, clientFilter, conceptFilter, issuerFilter, sortKey, sortDir]);
+  }, [rows, clientFilter, conceptFilter, issuerFilter, paidFilter, sortKey, sortDir]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
