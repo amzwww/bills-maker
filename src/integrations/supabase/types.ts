@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      invoice_import_log: {
+        Row: {
+          action: string
+          id: string
+          imported_at: string
+          imported_by: string | null
+          imported_data: Json
+          invoice_id: string | null
+          invoice_number: string
+          source_pdf_name: string | null
+          source_pdf_url: string | null
+        }
+        Insert: {
+          action?: string
+          id?: string
+          imported_at?: string
+          imported_by?: string | null
+          imported_data?: Json
+          invoice_id?: string | null
+          invoice_number: string
+          source_pdf_name?: string | null
+          source_pdf_url?: string | null
+        }
+        Update: {
+          action?: string
+          id?: string
+          imported_at?: string
+          imported_by?: string | null
+          imported_data?: Json
+          invoice_id?: string | null
+          invoice_number?: string
+          source_pdf_name?: string | null
+          source_pdf_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_import_log_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           client_address_line1: string | null
@@ -42,6 +86,8 @@ export type Database = {
           post_payment_note: string | null
           pre_payment_note: string | null
           seq: number
+          source_pdf_name: string | null
+          source_pdf_url: string | null
           status: string
           subtotal: number
           their_order: string | null
@@ -79,6 +125,8 @@ export type Database = {
           post_payment_note?: string | null
           pre_payment_note?: string | null
           seq: number
+          source_pdf_name?: string | null
+          source_pdf_url?: string | null
           status?: string
           subtotal?: number
           their_order?: string | null
@@ -116,6 +164,8 @@ export type Database = {
           post_payment_note?: string | null
           pre_payment_note?: string | null
           seq?: number
+          source_pdf_name?: string | null
+          source_pdf_url?: string | null
           status?: string
           subtotal?: number
           their_order?: string | null
