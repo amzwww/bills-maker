@@ -28,6 +28,7 @@ import {
   X,
   Trash2,
   AlertTriangle,
+  FileText,
 } from "lucide-react";
 import { eur } from "@/lib/invoiceCalc";
 import { generateInvoicePdf, type Issuer } from "@/lib/pdf";
@@ -162,6 +163,14 @@ const InvoicesList = () => {
     window.open(data.signedUrl, "_blank");
   };
 
+  const viewSourcePdf = async (path: string) => {
+    const { data, error } = await supabase.storage
+      .from("invoice-sources")
+      .createSignedUrl(path, 60 * 5);
+    if (error || !data?.signedUrl) return toast.error("No se pudo abrir el PDF de origen");
+    window.open(data.signedUrl, "_blank");
+  };
+
   const openDelete = (inv: any) => {
     setDeleteOpen(inv);
     setDeleteConfirmText("");
@@ -291,6 +300,9 @@ const InvoicesList = () => {
           <div className="flex gap-2 flex-wrap">
             <Button asChild variant="outline" size="sm">
               <Link to="/clientes">Ver por clientes</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/historial"><FileText className="h-4 w-4 mr-2" />Historial</Link>
             </Button>
             <Button variant="outline" size="sm" onClick={exportXlsx}>
               <FileSpreadsheet className="h-4 w-4 mr-2" />Exportar Excel
@@ -446,6 +458,16 @@ const InvoicesList = () => {
                         <Button size="sm" variant="outline" onClick={() => downloadPdf(r)}>
                           <FileDown className="h-4 w-4 mr-1" />PDF
                         </Button>
+                        {r.source_pdf_url && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => viewSourcePdf(r.source_pdf_url)}
+                            title={r.source_pdf_name || "PDF de origen"}
+                          >
+                            <FileText className="h-4 w-4 mr-1" />Origen
+                          </Button>
+                        )}
                         {isAdmin && (
                           <Button
                             size="sm"

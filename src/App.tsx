@@ -14,6 +14,7 @@ import Clients from "./pages/Clients.tsx";
 import Settings from "./pages/Settings.tsx";
 import Auth from "./pages/Auth.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
+import ImportLog from "./pages/ImportLog.tsx";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/facturas" element={<ProtectedRoute><InvoicesList /></ProtectedRoute>} />
             <Route path="/clientes" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
             <Route path="/ajustes" element={<ProtectedRoute adminOnly><Settings /></ProtectedRoute>} />
+            <Route path="/historial" element={<ProtectedRoute><ImportLog /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
