@@ -624,10 +624,17 @@ const NewInvoice = () => {
               {PRE_PAYMENT_NOTES[prePaymentKey].text}
             </div>
           )}
-          <div className="text-xs text-muted-foreground pt-2">
-            <strong>Bajo la forma de pago siempre aparecerá:</strong>
-            <p className="italic mt-1 whitespace-pre-line">{POST_PAYMENT_NOTE}</p>
-          </div>
+          {type !== "sponsor" && (
+            <div className="text-xs text-muted-foreground pt-2">
+              <strong>Bajo la forma de pago siempre aparecerá:</strong>
+              <p className="italic mt-1 whitespace-pre-line">{POST_PAYMENT_NOTE}</p>
+            </div>
+          )}
+          {type === "sponsor" && (
+            <p className="text-xs text-muted-foreground pt-2">
+              En facturas de sponsor no se incluye el texto de agenda al pie.
+            </p>
+          )}
         </Card>
 
         <div className="flex gap-3 justify-end sticky bottom-4">
