@@ -454,7 +454,7 @@ const NewInvoice = () => {
       </header>
 
       <main className="container py-6 space-y-6 max-w-4xl">
-        {gaps.length > 0 && (
+        {!editId && gaps.length > 0 && (
           <Card className="p-4 border-primary/40 bg-muted">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <div className="flex-1 text-sm">
