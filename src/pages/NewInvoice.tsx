@@ -98,8 +98,8 @@ const NewInvoice = () => {
     setClientName(c.client_name);
     setClientTaxId(c.client_tax_id || "");
     setClientAddr1(c.client_address_line1 || "");
-    setClientAddr2(c.client_address_line2 || "");
-    setAddr2Enabled(!!(c.client_address_line2));
+    setClientAddr2("");
+    setAddr2Enabled(false);
     setClientCityZip(c.client_city_zip || "");
     setClientCountry(c.client_country || "");
     setIsForeign(c.client_is_foreign);
