@@ -107,6 +107,9 @@ const InvoicesList = () => {
       irpf_amount: parseFloat(inv.irpf_amount),
       total: parseFloat(inv.total),
       pre_payment_note: inv.pre_payment_note,
+      invoice_type: inv.invoice_type,
+      is_rectificative: inv.is_rectificative,
+      rectified_invoice_number: inv.rectified_invoice_number,
     });
   };
 
