@@ -581,7 +581,11 @@ const InvoicesList = () => {
                         <Badge variant="secondary">Jon</Badge>
                       )}
                     </td>
-                    <td className="p-3 capitalize">{r.invoice_type}</td>
+                    <td className="p-3 capitalize">
+                      {r.is_rectificative ? (
+                        <Badge variant="outline" className="border-red-400 text-red-600 dark:text-red-400">Rectificativa</Badge>
+                      ) : r.invoice_type}
+                    </td>
                     <td className="p-3 text-right font-semibold whitespace-nowrap">{eur(parseFloat(r.total))}</td>
                     <td className="p-3 text-center">
                       {r.paid ? (
