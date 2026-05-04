@@ -70,6 +70,42 @@ const NewInvoice = () => {
   // Notas
   const [prePaymentKey, setPrePaymentKey] = useState<PrePaymentKey>("none");
 
+  // Clientes anteriores
+  const [pastClients, setPastClients] = useState<PastClient[]>([]);
+  const [clientSearchOpen, setClientSearchOpen] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("invoices")
+        .select("client_name, client_tax_id, client_address_line1, client_address_line2, client_city_zip, client_country, client_is_foreign, client_is_canary")
+        .order("invoice_date", { ascending: false });
+      if (!data) return;
+      const seen = new Set<string>();
+      const unique: PastClient[] = [];
+      for (const r of data) {
+        const key = (r.client_name || "").trim().toLowerCase();
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        unique.push(r as PastClient);
+      }
+      setPastClients(unique);
+    })();
+  }, []);
+
+  const selectPastClient = useCallback((c: PastClient) => {
+    setClientName(c.client_name);
+    setClientTaxId(c.client_tax_id || "");
+    setClientAddr1(c.client_address_line1 || "");
+    setClientAddr2(c.client_address_line2 || "");
+    setClientCityZip(c.client_city_zip || "");
+    setClientCountry(c.client_country || "");
+    setIsForeign(c.client_is_foreign);
+    setIsCanary(c.client_is_canary);
+    setClientSearchOpen(false);
+    toast.success(`Datos de "${c.client_name}" cargados`);
+  }, []);
+
   // Extracción IA desde captura
   const [extracting, setExtracting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
