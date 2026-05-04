@@ -293,6 +293,17 @@ const InvoicesList = () => {
 
   const totalFiltered = filtered.reduce((s, r) => s + (parseFloat(r.total) || 0), 0);
 
+  // Facturas pendientes con más de 30 días
+  const overdueInvoices = useMemo(() => {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    return rows.filter((r) => {
+      if (r.paid) return false;
+      const d = new Date(r.invoice_date);
+      return d < thirtyDaysAgo;
+    });
+  }, [rows]);
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card sticky top-0 z-20">
