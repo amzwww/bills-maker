@@ -96,6 +96,40 @@ const NewInvoice = () => {
     })();
   }, []);
 
+  // Load invoice data when editing
+  useEffect(() => {
+    if (!editId || editLoaded) return;
+    (async () => {
+      const { data: inv } = await supabase.from("invoices").select("*").eq("id", editId).single();
+      if (!inv) return;
+      setEditLoaded(true);
+      setInvoiceDate(inv.invoice_date);
+      setOurReference(inv.our_reference || "");
+      setTheirOrder(inv.their_order || "");
+      setClientName(inv.client_name);
+      setClientTaxId(inv.client_tax_id || "");
+      setClientAddr1(inv.client_address_line1 || "");
+      if (inv.client_address_line2) {
+        setClientAddr2(inv.client_address_line2);
+        setAddr2Enabled(true);
+      }
+      setClientCityZip(inv.client_city_zip || "");
+      setClientCountry(inv.client_country || "");
+      setIsForeign(inv.client_is_foreign);
+      setIsCanary(inv.client_is_canary);
+      setParentInvoice(inv.parent_invoice_number || "");
+      setItems((inv.line_items as any[]) || [{ description: "", unit_price: 0, quantity: 1, total: 0 }]);
+      setPreviewNumber(inv.invoice_number);
+      const matchedKey = Object.entries(PRE_PAYMENT_NOTES).find(([k, v]) => k !== "none" && k !== "other" && v.text === inv.pre_payment_note);
+      if (matchedKey) {
+        setPrePaymentKey(matchedKey[0] as PrePaymentKey);
+      } else if (inv.pre_payment_note) {
+        setPrePaymentKey("other");
+        setCustomPrePaymentText(inv.pre_payment_note);
+      }
+    })();
+  }, [editId, editLoaded]);
+
   const selectPastClient = useCallback((c: PastClient) => {
     setClientName(c.client_name);
     setClientTaxId(c.client_tax_id || "");
