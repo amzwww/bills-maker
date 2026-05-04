@@ -642,6 +642,16 @@ const InvoicesList = () => {
                             <FileText className="h-4 w-4 mr-1" />Origen
                           </Button>
                         )}
+                        {isAdmin && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => navigate(`/nueva?issuer=${r.issuer_id}&type=${r.invoice_type}&edit=${r.id}`)}
+                            title="Editar factura"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
                         {isAdmin && !r.is_rectificative && (
                           <Button
                             size="sm"
