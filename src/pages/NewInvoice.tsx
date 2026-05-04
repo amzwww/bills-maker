@@ -53,6 +53,7 @@ const NewInvoice = () => {
   const [clientTaxId, setClientTaxId] = useState("");
   const [clientAddr1, setClientAddr1] = useState("");
   const [clientAddr2, setClientAddr2] = useState("");
+  const [addr2Enabled, setAddr2Enabled] = useState(false);
   const [clientCityZip, setClientCityZip] = useState("");
   const [clientCountry, setClientCountry] = useState("");
   const [isForeign, setIsForeign] = useState(false);
@@ -69,7 +70,7 @@ const NewInvoice = () => {
 
   // Notas
   const [prePaymentKey, setPrePaymentKey] = useState<PrePaymentKey>("none");
-
+  const [customPrePaymentText, setCustomPrePaymentText] = useState("");
   // Clientes anteriores
   const [pastClients, setPastClients] = useState<PastClient[]>([]);
   const [clientSearchOpen, setClientSearchOpen] = useState(false);
