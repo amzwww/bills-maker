@@ -624,7 +624,15 @@ const NewInvoice = () => {
               ))}
             </SelectContent>
           </Select>
-          {prePaymentKey !== "none" && (
+          {prePaymentKey === "other" && (
+            <Textarea
+              rows={3}
+              placeholder="Escribe el texto que aparecerá antes de la forma de pago…"
+              value={customPrePaymentText}
+              onChange={(e) => setCustomPrePaymentText(e.target.value)}
+            />
+          )}
+          {prePaymentKey !== "none" && prePaymentKey !== "other" && (
             <div className="text-sm text-muted-foreground italic whitespace-pre-line bg-muted p-3 rounded">
               {PRE_PAYMENT_NOTES[prePaymentKey].text}
             </div>
