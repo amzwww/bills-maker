@@ -526,8 +526,11 @@ const NewInvoice = () => {
               <Input value={clientAddr1} onChange={(e) => setClientAddr1(e.target.value)} />
             </div>
             <div className="md:col-span-2">
-              <Label>Dirección 2 (opcional)</Label>
-              <Input value={clientAddr2} onChange={(e) => setClientAddr2(e.target.value)} />
+              <div className="flex items-center gap-2 mb-1">
+                <Checkbox checked={addr2Enabled} onCheckedChange={(v) => { setAddr2Enabled(!!v); if (!v) setClientAddr2(""); }} />
+                <Label className="mb-0">Dirección 2 (opcional)</Label>
+              </div>
+              <Input value={clientAddr2} onChange={(e) => setClientAddr2(e.target.value)} disabled={!addr2Enabled} />
             </div>
             <div>
               <Label>CP y ciudad</Label>
