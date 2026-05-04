@@ -287,7 +287,7 @@ const NewInvoice = () => {
       }
       const invoiceNumber = `${issuerId}-${year}-${String(seq).padStart(3, "0")}`;
 
-      const prePaymentText = PRE_PAYMENT_NOTES[prePaymentKey].text || null;
+      const prePaymentText = prePaymentKey === "other" ? (customPrePaymentText.trim() || null) : (PRE_PAYMENT_NOTES[prePaymentKey].text || null);
 
       const computedType = type === "complemento" ? "complemento" : classifyInvoice(items);
 
