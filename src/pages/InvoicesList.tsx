@@ -208,7 +208,113 @@ const InvoicesList = () => {
     }
   };
 
-  // helper: extrae conceptos de las líneas
+  const confirmRectify = async () => {
+    if (!rectifyOpen) return;
+    setRectifying(true);
+    try {
+      const inv = rectifyOpen;
+      const year = parseInt(inv.invoice_date.slice(0, 4));
+      // Get next seq (check gaps first)
+      const { data: gapData } = await supabase.rpc("find_invoice_gaps", {
+        _issuer_id: inv.issuer_id,
+        _year: year,
+      });
+      let seq: number;
+      if (gapData && gapData.length > 0) {
+        seq = gapData[0].missing_seq;
+      } else {
+        const { data: seqData, error: seqErr } = await supabase.rpc("next_invoice_seq", {
+          _issuer_id: inv.issuer_id,
+          _year: year,
+        });
+        if (seqErr || typeof seqData !== "number") throw seqErr || new Error("No seq");
+        seq = seqData;
+      }
+      const invoiceNumber = `${inv.issuer_id}-${year}-${String(seq).padStart(3, "0")}`;
+
+      // Create rectificative line items (negative amounts)
+      const originalItems = (inv.line_items || []) as any[];
+      const rectItems = originalItems.map((li: any) => ({
+        ...li,
+        unit_price: -Math.abs(li.unit_price || 0),
+        total: -Math.abs(li.total || 0),
+      }));
+
+      const payload = {
+        issuer_id: inv.issuer_id,
+        invoice_number: invoiceNumber,
+        year,
+        seq,
+        invoice_type: inv.invoice_type,
+        invoice_date: new Date().toISOString().slice(0, 10),
+        parent_invoice_number: inv.parent_invoice_number || null,
+        our_reference: inv.our_reference || null,
+        their_order: inv.their_order || null,
+        client_name: inv.client_name,
+        client_tax_id: inv.client_tax_id || null,
+        client_address_line1: inv.client_address_line1 || null,
+        client_address_line2: inv.client_address_line2 || null,
+        client_city_zip: inv.client_city_zip || null,
+        client_country: inv.client_country || null,
+        client_is_foreign: inv.client_is_foreign,
+        client_is_canary: inv.client_is_canary,
+        line_items: rectItems as any,
+        subtotal: -Math.abs(parseFloat(inv.subtotal) || 0),
+        vat_rate: parseFloat(inv.vat_rate) || 0,
+        vat_label: inv.vat_label,
+        vat_amount: -Math.abs(parseFloat(inv.vat_amount) || 0),
+        irpf_rate: parseFloat(inv.irpf_rate) || 0,
+        irpf_amount: -Math.abs(parseFloat(inv.irpf_amount) || 0),
+        total: -Math.abs(parseFloat(inv.total) || 0),
+        pre_payment_note: null,
+        post_payment_note: null,
+        is_rectificative: true,
+        rectified_invoice_number: inv.invoice_number,
+      };
+
+      const { error } = await supabase.from("invoices").insert(payload);
+      if (error) throw error;
+
+      // Auto-generate PDF
+      const issuer = issuers[inv.issuer_id];
+      if (issuer) {
+        generateInvoicePdf({
+          issuer,
+          invoice_number: invoiceNumber,
+          invoice_date: payload.invoice_date,
+          our_reference: payload.our_reference,
+          their_order: payload.their_order,
+          client_name: payload.client_name,
+          client_tax_id: payload.client_tax_id,
+          client_address_line1: payload.client_address_line1,
+          client_address_line2: payload.client_address_line2,
+          client_city_zip: payload.client_city_zip,
+          client_country: payload.client_country,
+          line_items: rectItems,
+          subtotal: payload.subtotal,
+          vat_rate: payload.vat_rate,
+          vat_label: payload.vat_label,
+          vat_amount: payload.vat_amount,
+          irpf_rate: payload.irpf_rate,
+          irpf_amount: payload.irpf_amount,
+          total: payload.total,
+          pre_payment_note: null,
+          invoice_type: payload.invoice_type,
+          is_rectificative: true,
+          rectified_invoice_number: inv.invoice_number,
+        });
+      }
+
+      toast.success(`Factura rectificativa ${invoiceNumber} creada`);
+      setRectifyOpen(null);
+      await reload();
+    } catch (e: any) {
+      toast.error(e.message || "Error al rectificar");
+    } finally {
+      setRectifying(false);
+    }
+  };
+
   const conceptsOf = (inv: any): string => {
     const items = (inv.line_items || []) as any[];
     return items.map((li) => li?.description || "").join(" | ");
