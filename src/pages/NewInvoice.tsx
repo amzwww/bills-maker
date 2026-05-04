@@ -35,6 +35,7 @@ const NewInvoice = () => {
   const navigate = useNavigate();
   const issuerId = (params.get("issuer") || "JHE") as "JHE" | "BN";
   const type = (params.get("type") || "ponencia") as InvoiceType;
+  const editId = params.get("edit"); // uuid of invoice being edited
 
   const [issuer, setIssuer] = useState<Issuer | null>(null);
   const [loading, setLoading] = useState(false);
@@ -42,6 +43,7 @@ const NewInvoice = () => {
   const [nextSeq, setNextSeq] = useState<number | null>(null);
   const [gaps, setGaps] = useState<number[]>([]);
   const [chosenSeq, setChosenSeq] = useState<number | null>(null);
+  const [editLoaded, setEditLoaded] = useState(false);
 
   // Cabecera
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0, 10));
