@@ -250,5 +250,5 @@ export function generateInvoicePdf(data: InvoicePdfData) {
     doc.text(postLines, margin, cursor);
   }
 
-  doc.save(`${data.invoice_number}.pdf`);
+  doc.save(`${data.invoice_number} - ${data.client_name}.pdf`);
 }
