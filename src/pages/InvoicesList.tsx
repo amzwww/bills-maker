@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -30,6 +30,7 @@ import {
   AlertTriangle,
   FileText,
   RotateCcw,
+  Pencil,
 } from "lucide-react";
 import { eur } from "@/lib/invoiceCalc";
 import { generateInvoicePdf, type Issuer } from "@/lib/pdf";
@@ -40,6 +41,7 @@ type SortKey = "invoice_number" | "invoice_date" | "client_name" | "total";
 type SortDir = "asc" | "desc";
 
 const InvoicesList = () => {
+  const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const [rows, setRows] = useState<any[]>([]);
   const [issuers, setIssuers] = useState<Record<string, Issuer>>({});
@@ -638,6 +640,16 @@ const InvoicesList = () => {
                             title={r.source_pdf_name || "PDF de origen"}
                           >
                             <FileText className="h-4 w-4 mr-1" />Origen
+                          </Button>
+                        )}
+                        {isAdmin && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => navigate(`/nueva?issuer=${r.issuer_id}&type=${r.invoice_type}&edit=${r.id}`)}
+                            title="Editar factura"
+                          >
+                            <Pencil className="h-4 w-4" />
                           </Button>
                         )}
                         {isAdmin && !r.is_rectificative && (

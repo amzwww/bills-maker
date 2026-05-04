@@ -35,6 +35,7 @@ const NewInvoice = () => {
   const navigate = useNavigate();
   const issuerId = (params.get("issuer") || "JHE") as "JHE" | "BN";
   const type = (params.get("type") || "ponencia") as InvoiceType;
+  const editId = params.get("edit"); // uuid of invoice being edited
 
   const [issuer, setIssuer] = useState<Issuer | null>(null);
   const [loading, setLoading] = useState(false);
@@ -42,6 +43,7 @@ const NewInvoice = () => {
   const [nextSeq, setNextSeq] = useState<number | null>(null);
   const [gaps, setGaps] = useState<number[]>([]);
   const [chosenSeq, setChosenSeq] = useState<number | null>(null);
+  const [editLoaded, setEditLoaded] = useState(false);
 
   // Cabecera
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0, 10));
@@ -93,6 +95,40 @@ const NewInvoice = () => {
       setPastClients(unique);
     })();
   }, []);
+
+  // Load invoice data when editing
+  useEffect(() => {
+    if (!editId || editLoaded) return;
+    (async () => {
+      const { data: inv } = await supabase.from("invoices").select("*").eq("id", editId).single();
+      if (!inv) return;
+      setEditLoaded(true);
+      setInvoiceDate(inv.invoice_date);
+      setOurReference(inv.our_reference || "");
+      setTheirOrder(inv.their_order || "");
+      setClientName(inv.client_name);
+      setClientTaxId(inv.client_tax_id || "");
+      setClientAddr1(inv.client_address_line1 || "");
+      if (inv.client_address_line2) {
+        setClientAddr2(inv.client_address_line2);
+        setAddr2Enabled(true);
+      }
+      setClientCityZip(inv.client_city_zip || "");
+      setClientCountry(inv.client_country || "");
+      setIsForeign(inv.client_is_foreign);
+      setIsCanary(inv.client_is_canary);
+      setParentInvoice(inv.parent_invoice_number || "");
+      setItems((inv.line_items as any[]) || [{ description: "", unit_price: 0, quantity: 1, total: 0 }]);
+      setPreviewNumber(inv.invoice_number);
+      const matchedKey = Object.entries(PRE_PAYMENT_NOTES).find(([k, v]) => k !== "none" && k !== "other" && (v as any).text === inv.pre_payment_note);
+      if (matchedKey) {
+        setPrePaymentKey(matchedKey[0] as PrePaymentKey);
+      } else if (inv.pre_payment_note) {
+        setPrePaymentKey("other");
+        setCustomPrePaymentText(inv.pre_payment_note);
+      }
+    })();
+  }, [editId, editLoaded]);
 
   const selectPastClient = useCallback((c: PastClient) => {
     setClientName(c.client_name);
@@ -260,71 +296,110 @@ const NewInvoice = () => {
     }
     setLoading(true);
     try {
-      const year = parseInt(invoiceDate.slice(0, 4));
-      let seq: number;
-      if (typeof chosenSeq === "number") {
-        // Verificar que el hueco sigue libre
-        const { data: existing } = await supabase
-          .from("invoices")
-          .select("id")
-          .eq("issuer_id", issuerId)
-          .eq("year", year)
-          .eq("seq", chosenSeq)
-          .maybeSingle();
-        if (existing) {
-          toast.error(`El número ${chosenSeq} ya ha sido reutilizado. Recarga la página.`);
-          setLoading(false);
-          return;
-        }
-        seq = chosenSeq;
-      } else {
-        const { data: seqData, error: seqErr } = await supabase.rpc("next_invoice_seq", {
-          _issuer_id: issuerId,
-          _year: year,
-        });
-        if (seqErr || typeof seqData !== "number") throw seqErr || new Error("No seq");
-        seq = seqData;
-      }
-      const invoiceNumber = `${issuerId}-${year}-${String(seq).padStart(3, "0")}`;
-
       const prePaymentText = prePaymentKey === "other" ? (customPrePaymentText.trim() || null) : (PRE_PAYMENT_NOTES[prePaymentKey].text || null);
-
       const computedType = type === "complemento" ? "complemento" : classifyInvoice(items);
 
-      const payload = {
-        issuer_id: issuerId,
-        invoice_number: invoiceNumber,
-        year,
-        seq,
-        invoice_type: computedType,
-        invoice_date: invoiceDate,
-        parent_invoice_number: type === "complemento" ? parentInvoice : null,
-        our_reference: ourReference || null,
-        their_order: theirOrder || null,
-        client_name: clientName,
-        client_tax_id: clientTaxId || null,
-        client_address_line1: clientAddr1 || null,
-        client_address_line2: clientAddr2 || null,
-        client_city_zip: clientCityZip || null,
-        client_country: clientCountry || null,
-        client_is_foreign: isForeign,
-        client_is_canary: isCanary,
-        line_items: items as any,
-        subtotal,
-        vat_rate: taxes.vat_rate,
-        vat_label: taxes.vat_label,
-        vat_amount: taxes.vat_amount,
-        irpf_rate: taxes.irpf_rate,
-        irpf_amount: taxes.irpf_amount,
-        total,
-        pre_payment_note: prePaymentText,
-        post_payment_note: computedType === "sponsor" ? null : POST_PAYMENT_NOTE,
-      };
+      let invoiceNumber: string;
+      let seq: number;
+      let year: number;
 
-      const { error } = await supabase.from("invoices").insert(payload);
-      if (error) throw error;
+      if (editId) {
+        // Edit mode: keep original number/seq/year
+        invoiceNumber = previewNumber;
+        const parts = invoiceNumber.split("-");
+        year = parseInt(parts[1]);
+        seq = parseInt(parts[2]);
 
-      toast.success(`Factura ${invoiceNumber} creada`);
+        const updatePayload = {
+          invoice_type: computedType,
+          invoice_date: invoiceDate,
+          parent_invoice_number: type === "complemento" ? parentInvoice : null,
+          our_reference: ourReference || null,
+          their_order: theirOrder || null,
+          client_name: clientName,
+          client_tax_id: clientTaxId || null,
+          client_address_line1: clientAddr1 || null,
+          client_address_line2: clientAddr2 || null,
+          client_city_zip: clientCityZip || null,
+          client_country: clientCountry || null,
+          client_is_foreign: isForeign,
+          client_is_canary: isCanary,
+          line_items: items as any,
+          subtotal,
+          vat_rate: taxes.vat_rate,
+          vat_label: taxes.vat_label,
+          vat_amount: taxes.vat_amount,
+          irpf_rate: taxes.irpf_rate,
+          irpf_amount: taxes.irpf_amount,
+          total,
+          pre_payment_note: prePaymentText,
+          post_payment_note: computedType === "sponsor" ? null : POST_PAYMENT_NOTE,
+        };
+
+        const { error } = await supabase.from("invoices").update(updatePayload).eq("id", editId);
+        if (error) throw error;
+        toast.success(`Factura ${invoiceNumber} actualizada`);
+      } else {
+        // Create mode
+        year = parseInt(invoiceDate.slice(0, 4));
+        if (typeof chosenSeq === "number") {
+          const { data: existing } = await supabase
+            .from("invoices")
+            .select("id")
+            .eq("issuer_id", issuerId)
+            .eq("year", year)
+            .eq("seq", chosenSeq)
+            .maybeSingle();
+          if (existing) {
+            toast.error(`El número ${chosenSeq} ya ha sido reutilizado. Recarga la página.`);
+            setLoading(false);
+            return;
+          }
+          seq = chosenSeq;
+        } else {
+          const { data: seqData, error: seqErr } = await supabase.rpc("next_invoice_seq", {
+            _issuer_id: issuerId,
+            _year: year,
+          });
+          if (seqErr || typeof seqData !== "number") throw seqErr || new Error("No seq");
+          seq = seqData;
+        }
+        invoiceNumber = `${issuerId}-${year}-${String(seq).padStart(3, "0")}`;
+
+        const payload = {
+          issuer_id: issuerId,
+          invoice_number: invoiceNumber,
+          year,
+          seq,
+          invoice_type: computedType,
+          invoice_date: invoiceDate,
+          parent_invoice_number: type === "complemento" ? parentInvoice : null,
+          our_reference: ourReference || null,
+          their_order: theirOrder || null,
+          client_name: clientName,
+          client_tax_id: clientTaxId || null,
+          client_address_line1: clientAddr1 || null,
+          client_address_line2: clientAddr2 || null,
+          client_city_zip: clientCityZip || null,
+          client_country: clientCountry || null,
+          client_is_foreign: isForeign,
+          client_is_canary: isCanary,
+          line_items: items as any,
+          subtotal,
+          vat_rate: taxes.vat_rate,
+          vat_label: taxes.vat_label,
+          vat_amount: taxes.vat_amount,
+          irpf_rate: taxes.irpf_rate,
+          irpf_amount: taxes.irpf_amount,
+          total,
+          pre_payment_note: prePaymentText,
+          post_payment_note: computedType === "sponsor" ? null : POST_PAYMENT_NOTE,
+        };
+
+        const { error } = await supabase.from("invoices").insert(payload);
+        if (error) throw error;
+        toast.success(`Factura ${invoiceNumber} creada`);
+      }
 
       if (alsoPdf) {
         generateInvoicePdf({
@@ -367,19 +442,19 @@ const NewInvoice = () => {
       <header className="border-b bg-card sticky top-0 z-10">
         <div className="container py-4 flex items-center gap-4">
           <Button asChild variant="ghost" size="icon">
-            <Link to={issuerId === "JHE" ? "/jon" : "/"}><ArrowLeft className="h-5 w-5" /></Link>
+            <Link to={editId ? "/facturas" : (issuerId === "JHE" ? "/jon" : "/")}><ArrowLeft className="h-5 w-5" /></Link>
           </Button>
           <div className="flex-1">
-            <h1 className="text-xl font-bold">Nueva factura · {typeLabel}</h1>
+            <h1 className="text-xl font-bold">{editId ? "Editar factura" : "Nueva factura"} · {typeLabel}</h1>
             <p className="text-sm text-muted-foreground">
-              Próximo número: <span className="font-mono font-semibold text-foreground">{previewNumber || "..."}</span>
+              {editId ? "Número:" : "Próximo número:"} <span className="font-mono font-semibold text-foreground">{previewNumber || "..."}</span>
             </p>
           </div>
         </div>
       </header>
 
       <main className="container py-6 space-y-6 max-w-4xl">
-        {gaps.length > 0 && (
+        {!editId && gaps.length > 0 && (
           <Card className="p-4 border-primary/40 bg-muted">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <div className="flex-1 text-sm">
