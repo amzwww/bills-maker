@@ -120,7 +120,7 @@ const NewInvoice = () => {
       setParentInvoice(inv.parent_invoice_number || "");
       setItems((inv.line_items as any[]) || [{ description: "", unit_price: 0, quantity: 1, total: 0 }]);
       setPreviewNumber(inv.invoice_number);
-      const matchedKey = Object.entries(PRE_PAYMENT_NOTES).find(([k, v]) => k !== "none" && k !== "other" && v.text === inv.pre_payment_note);
+      const matchedKey = Object.entries(PRE_PAYMENT_NOTES).find(([k, v]) => k !== "none" && k !== "other" && (v as any).text === inv.pre_payment_note);
       if (matchedKey) {
         setPrePaymentKey(matchedKey[0] as PrePaymentKey);
       } else if (inv.pre_payment_note) {
