@@ -15,6 +15,7 @@ export const PRE_PAYMENT_NOTES = {
     text:
       "Se factura el restante 50% más los gastos de desplazamiento y logística de Jon para acudir al evento.",
   },
+  other: { label: "Otros (texto libre)", text: "" },
 } as const;
 
 export type PrePaymentKey = keyof typeof PRE_PAYMENT_NOTES;
