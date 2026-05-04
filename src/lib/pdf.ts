@@ -38,6 +38,8 @@ export type InvoicePdfData = {
   total: number;
   pre_payment_note?: string | null;
   invoice_type?: string;
+  is_rectificative?: boolean;
+  rectified_invoice_number?: string | null;
 };
 
 function fmtDate(iso: string) {
