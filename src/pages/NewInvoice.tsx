@@ -442,12 +442,12 @@ const NewInvoice = () => {
       <header className="border-b bg-card sticky top-0 z-10">
         <div className="container py-4 flex items-center gap-4">
           <Button asChild variant="ghost" size="icon">
-            <Link to={issuerId === "JHE" ? "/jon" : "/"}><ArrowLeft className="h-5 w-5" /></Link>
+            <Link to={editId ? "/facturas" : (issuerId === "JHE" ? "/jon" : "/")}><ArrowLeft className="h-5 w-5" /></Link>
           </Button>
           <div className="flex-1">
-            <h1 className="text-xl font-bold">Nueva factura · {typeLabel}</h1>
+            <h1 className="text-xl font-bold">{editId ? "Editar factura" : "Nueva factura"} · {typeLabel}</h1>
             <p className="text-sm text-muted-foreground">
-              Próximo número: <span className="font-mono font-semibold text-foreground">{previewNumber || "..."}</span>
+              {editId ? "Número:" : "Próximo número:"} <span className="font-mono font-semibold text-foreground">{previewNumber || "..."}</span>
             </p>
           </div>
         </div>
