@@ -101,6 +101,13 @@ export function generateInvoicePdf(data: InvoicePdfData) {
   doc.setFont("helvetica", "normal");
   doc.text(data.invoice_number, pageW - margin, y, { align: "right" });
   y += 5;
+  if (data.is_rectificative && data.rectified_invoice_number) {
+    doc.setFont("helvetica", "bold");
+    doc.text("RECTIFICA A:", pageW - margin - 50, y);
+    doc.setFont("helvetica", "normal");
+    doc.text(data.rectified_invoice_number, pageW - margin, y, { align: "right" });
+    y += 5;
+  }
   if (data.our_reference) {
     doc.setFont("helvetica", "bold");
     doc.text("NUESTRA REFERENCIA:", pageW - margin - 50, y);
