@@ -23,7 +23,25 @@ if (isInIframe || isPreviewHost) {
   }
 } else if ("serviceWorker" in navigator && import.meta.env.PROD) {
   import("virtual:pwa-register").then(({ registerSW }) => {
-    registerSW({ immediate: true });
+    const updateSW = registerSW({
+      immediate: true,
+      onNeedRefresh() {
+        // Auto-actualizar cuando hay nueva versión
+        if (confirm("Hay una nueva versión disponible. ¿Actualizar ahora?")) {
+          updateSW(true);
+        }
+      },
+      onOfflineReady() {
+        console.log("App lista para uso offline");
+      },
+    });
+
+    // Comprobar actualizaciones cada vez que la app vuelve a primer plano
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        updateSW();
+      }
+    });
   });
 }
 

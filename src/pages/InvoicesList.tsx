@@ -293,6 +293,17 @@ const InvoicesList = () => {
 
   const totalFiltered = filtered.reduce((s, r) => s + (parseFloat(r.total) || 0), 0);
 
+  // Facturas pendientes con más de 30 días
+  const overdueInvoices = useMemo(() => {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    return rows.filter((r) => {
+      if (r.paid) return false;
+      const d = new Date(r.invoice_date);
+      return d < thirtyDaysAgo;
+    });
+  }, [rows]);
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card sticky top-0 z-20">
@@ -315,6 +326,31 @@ const InvoicesList = () => {
         </div>
       </header>
       <main className="container py-6 space-y-4">
+        {overdueInvoices.length > 0 && (
+          <Card className="p-4 border-amber-500/50 bg-amber-50 dark:bg-amber-950/30">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+              <div className="text-sm">
+                <p className="font-semibold text-amber-800 dark:text-amber-300">
+                  {overdueInvoices.length} factura{overdueInvoices.length > 1 ? "s" : ""} pendiente{overdueInvoices.length > 1 ? "s" : ""} de cobro con más de 30 días
+                </p>
+                <ul className="mt-1 space-y-0.5 text-amber-700 dark:text-amber-400">
+                  {overdueInvoices.slice(0, 5).map((inv) => {
+                    const days = Math.floor((Date.now() - new Date(inv.invoice_date).getTime()) / 86400000);
+                    return (
+                      <li key={inv.id} className="font-mono text-xs">
+                        {inv.invoice_number} — {inv.client_name} — {eur(parseFloat(inv.total))} — {days} días
+                      </li>
+                    );
+                  })}
+                  {overdueInvoices.length > 5 && (
+                    <li className="text-xs">…y {overdueInvoices.length - 5} más</li>
+                  )}
+                </ul>
+              </div>
+            </div>
+          </Card>
+        )}
         <Card className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto_auto_auto] gap-3 items-end">
             <div>

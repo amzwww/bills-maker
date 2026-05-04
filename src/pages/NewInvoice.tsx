@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -8,12 +8,25 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Plus, Trash2, FileDown, Camera, Loader2 } from "lucide-react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ArrowLeft, Plus, Trash2, FileDown, Camera, Loader2, Search } from "lucide-react";
 import { useRef } from "react";
 import { toast } from "sonner";
 import { classifyInvoice, computeSubtotal, computeTaxes, eur, round2, type LineItem } from "@/lib/invoiceCalc";
 import { COMPLEMENT_INDENTED_LINE, PRE_PAYMENT_NOTES, POST_PAYMENT_NOTE, ponenciaDescription, type PrePaymentKey } from "@/lib/invoiceTexts";
 import { generateInvoicePdf, type Issuer } from "@/lib/pdf";
+
+type PastClient = {
+  client_name: string;
+  client_tax_id: string | null;
+  client_address_line1: string | null;
+  client_address_line2: string | null;
+  client_city_zip: string | null;
+  client_country: string | null;
+  client_is_foreign: boolean;
+  client_is_canary: boolean;
+};
 
 type InvoiceType = "ponencia" | "complemento" | "sponsor";
 
@@ -56,6 +69,42 @@ const NewInvoice = () => {
 
   // Notas
   const [prePaymentKey, setPrePaymentKey] = useState<PrePaymentKey>("none");
+
+  // Clientes anteriores
+  const [pastClients, setPastClients] = useState<PastClient[]>([]);
+  const [clientSearchOpen, setClientSearchOpen] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("invoices")
+        .select("client_name, client_tax_id, client_address_line1, client_address_line2, client_city_zip, client_country, client_is_foreign, client_is_canary")
+        .order("invoice_date", { ascending: false });
+      if (!data) return;
+      const seen = new Set<string>();
+      const unique: PastClient[] = [];
+      for (const r of data) {
+        const key = (r.client_name || "").trim().toLowerCase();
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        unique.push(r as PastClient);
+      }
+      setPastClients(unique);
+    })();
+  }, []);
+
+  const selectPastClient = useCallback((c: PastClient) => {
+    setClientName(c.client_name);
+    setClientTaxId(c.client_tax_id || "");
+    setClientAddr1(c.client_address_line1 || "");
+    setClientAddr2(c.client_address_line2 || "");
+    setClientCityZip(c.client_city_zip || "");
+    setClientCountry(c.client_country || "");
+    setIsForeign(c.client_is_foreign);
+    setIsCanary(c.client_is_canary);
+    setClientSearchOpen(false);
+    toast.success(`Datos de "${c.client_name}" cargados`);
+  }, []);
 
   // Extracción IA desde captura
   const [extracting, setExtracting] = useState(false);
@@ -405,9 +454,38 @@ const NewInvoice = () => {
 
         {/* Cliente */}
         <Card className="p-6 space-y-4" onPaste={handlePaste}>
-          <div className="flex items-center justify-between flex-wrap gap-2">
+           <div className="flex items-center justify-between flex-wrap gap-2">
             <h2 className="font-semibold">Cliente</h2>
             <div className="flex items-center gap-2">
+              <Popover open={clientSearchOpen} onOpenChange={setClientSearchOpen}>
+                <PopoverTrigger asChild>
+                  <Button type="button" variant="outline" size="sm">
+                    <Search className="h-4 w-4 mr-2" />Cargar cliente anterior
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0" align="end">
+                  <Command>
+                    <CommandInput placeholder="Buscar por nombre o CIF…" />
+                    <CommandList>
+                      <CommandEmpty>Sin resultados</CommandEmpty>
+                      <CommandGroup>
+                        {pastClients.map((c, i) => (
+                          <CommandItem
+                            key={i}
+                            value={`${c.client_name} ${c.client_tax_id || ""}`}
+                            onSelect={() => selectPastClient(c)}
+                          >
+                            <div className="flex flex-col">
+                              <span className="font-medium">{c.client_name}</span>
+                              {c.client_tax_id && <span className="text-xs text-muted-foreground">{c.client_tax_id}</span>}
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -546,10 +624,17 @@ const NewInvoice = () => {
               {PRE_PAYMENT_NOTES[prePaymentKey].text}
             </div>
           )}
-          <div className="text-xs text-muted-foreground pt-2">
-            <strong>Bajo la forma de pago siempre aparecerá:</strong>
-            <p className="italic mt-1 whitespace-pre-line">{POST_PAYMENT_NOTE}</p>
-          </div>
+          {type !== "sponsor" && (
+            <div className="text-xs text-muted-foreground pt-2">
+              <strong>Bajo la forma de pago siempre aparecerá:</strong>
+              <p className="italic mt-1 whitespace-pre-line">{POST_PAYMENT_NOTE}</p>
+            </div>
+          )}
+          {type === "sponsor" && (
+            <p className="text-xs text-muted-foreground pt-2">
+              En facturas de sponsor no se incluye el texto de agenda al pie.
+            </p>
+          )}
         </Card>
 
         <div className="flex gap-3 justify-end sticky bottom-4">
