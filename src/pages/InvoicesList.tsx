@@ -633,6 +633,16 @@ const InvoicesList = () => {
                             <FileText className="h-4 w-4 mr-1" />Origen
                           </Button>
                         )}
+                        {isAdmin && !r.is_rectificative && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setRectifyOpen(r)}
+                            title="Factura rectificativa"
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                          </Button>
+                        )}
                         {isAdmin && (
                           <Button
                             size="sm"
