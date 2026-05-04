@@ -444,12 +444,12 @@ const InvoicesList = () => {
           <Card className="p-4 border-amber-500/50 bg-amber-50 dark:bg-amber-950/30">
             <div className="flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
-              <div className="text-sm">
+              <div className="text-sm flex-1 min-w-0">
                 <p className="font-semibold text-amber-800 dark:text-amber-300">
                   {overdueInvoices.length} factura{overdueInvoices.length > 1 ? "s" : ""} pendiente{overdueInvoices.length > 1 ? "s" : ""} de cobro con más de 30 días
                 </p>
-                <ul className="mt-1 space-y-0.5 text-amber-700 dark:text-amber-400">
-                  {overdueInvoices.slice(0, 5).map((inv) => {
+                <ul className="mt-1 space-y-0.5 text-amber-700 dark:text-amber-400 max-h-48 overflow-y-auto pr-2">
+                  {overdueInvoices.map((inv) => {
                     const days = Math.floor((Date.now() - new Date(inv.invoice_date).getTime()) / 86400000);
                     return (
                       <li key={inv.id} className="font-mono text-xs">
@@ -457,9 +457,6 @@ const InvoicesList = () => {
                       </li>
                     );
                   })}
-                  {overdueInvoices.length > 5 && (
-                    <li className="text-xs">…y {overdueInvoices.length - 5} más</li>
-                  )}
                 </ul>
               </div>
             </div>
