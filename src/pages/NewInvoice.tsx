@@ -53,6 +53,7 @@ const NewInvoice = () => {
   const [clientTaxId, setClientTaxId] = useState("");
   const [clientAddr1, setClientAddr1] = useState("");
   const [clientAddr2, setClientAddr2] = useState("");
+  const [addr2Enabled, setAddr2Enabled] = useState(false);
   const [clientCityZip, setClientCityZip] = useState("");
   const [clientCountry, setClientCountry] = useState("");
   const [isForeign, setIsForeign] = useState(false);
@@ -69,7 +70,7 @@ const NewInvoice = () => {
 
   // Notas
   const [prePaymentKey, setPrePaymentKey] = useState<PrePaymentKey>("none");
-
+  const [customPrePaymentText, setCustomPrePaymentText] = useState("");
   // Clientes anteriores
   const [pastClients, setPastClients] = useState<PastClient[]>([]);
   const [clientSearchOpen, setClientSearchOpen] = useState(false);
@@ -98,6 +99,7 @@ const NewInvoice = () => {
     setClientTaxId(c.client_tax_id || "");
     setClientAddr1(c.client_address_line1 || "");
     setClientAddr2(c.client_address_line2 || "");
+    setAddr2Enabled(!!(c.client_address_line2));
     setClientCityZip(c.client_city_zip || "");
     setClientCountry(c.client_country || "");
     setIsForeign(c.client_is_foreign);
@@ -130,7 +132,7 @@ const NewInvoice = () => {
       if (data.client_name) setClientName(data.client_name);
       if (data.client_tax_id) setClientTaxId(data.client_tax_id);
       if (data.client_address_line1) setClientAddr1(data.client_address_line1);
-      if (data.client_address_line2) setClientAddr2(data.client_address_line2);
+      if (data.client_address_line2) { setClientAddr2(data.client_address_line2); setAddr2Enabled(true); }
       if (data.client_city_zip) setClientCityZip(data.client_city_zip);
       if (data.client_country) setClientCountry(data.client_country);
       if (typeof data.is_foreign === "boolean") {
@@ -285,7 +287,7 @@ const NewInvoice = () => {
       }
       const invoiceNumber = `${issuerId}-${year}-${String(seq).padStart(3, "0")}`;
 
-      const prePaymentText = PRE_PAYMENT_NOTES[prePaymentKey].text || null;
+      const prePaymentText = prePaymentKey === "other" ? (customPrePaymentText.trim() || null) : (PRE_PAYMENT_NOTES[prePaymentKey].text || null);
 
       const computedType = type === "complemento" ? "complemento" : classifyInvoice(items);
 
@@ -524,8 +526,11 @@ const NewInvoice = () => {
               <Input value={clientAddr1} onChange={(e) => setClientAddr1(e.target.value)} />
             </div>
             <div className="md:col-span-2">
-              <Label>Dirección 2 (opcional)</Label>
-              <Input value={clientAddr2} onChange={(e) => setClientAddr2(e.target.value)} />
+              <div className="flex items-center gap-2 mb-1">
+                <Checkbox checked={addr2Enabled} onCheckedChange={(v) => { setAddr2Enabled(!!v); if (!v) setClientAddr2(""); }} />
+                <Label className="mb-0">Dirección 2 (opcional)</Label>
+              </div>
+              <Input value={clientAddr2} onChange={(e) => setClientAddr2(e.target.value)} disabled={!addr2Enabled} />
             </div>
             <div>
               <Label>CP y ciudad</Label>
@@ -619,7 +624,15 @@ const NewInvoice = () => {
               ))}
             </SelectContent>
           </Select>
-          {prePaymentKey !== "none" && (
+          {prePaymentKey === "other" && (
+            <Textarea
+              rows={3}
+              placeholder="Escribe el texto que aparecerá antes de la forma de pago…"
+              value={customPrePaymentText}
+              onChange={(e) => setCustomPrePaymentText(e.target.value)}
+            />
+          )}
+          {prePaymentKey !== "none" && prePaymentKey !== "other" && (
             <div className="text-sm text-muted-foreground italic whitespace-pre-line bg-muted p-3 rounded">
               {PRE_PAYMENT_NOTES[prePaymentKey].text}
             </div>
