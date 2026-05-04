@@ -41,6 +41,7 @@ type SortKey = "invoice_number" | "invoice_date" | "client_name" | "total";
 type SortDir = "asc" | "desc";
 
 const InvoicesList = () => {
+  const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const [rows, setRows] = useState<any[]>([]);
   const [issuers, setIssuers] = useState<Record<string, Issuer>>({});
