@@ -132,7 +132,7 @@ const NewInvoice = () => {
       if (data.client_name) setClientName(data.client_name);
       if (data.client_tax_id) setClientTaxId(data.client_tax_id);
       if (data.client_address_line1) setClientAddr1(data.client_address_line1);
-      if (data.client_address_line2) setClientAddr2(data.client_address_line2);
+      if (data.client_address_line2) { setClientAddr2(data.client_address_line2); setAddr2Enabled(true); }
       if (data.client_city_zip) setClientCityZip(data.client_city_zip);
       if (data.client_country) setClientCountry(data.client_country);
       if (typeof data.is_foreign === "boolean") {
