@@ -50,6 +50,8 @@ const InvoicesList = () => {
   const [deleteOpen, setDeleteOpen] = useState<any | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [rectifyOpen, setRectifyOpen] = useState<any | null>(null);
+  const [rectifying, setRectifying] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
 
   // filtros y orden
