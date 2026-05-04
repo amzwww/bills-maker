@@ -29,6 +29,7 @@ import {
   Trash2,
   AlertTriangle,
   FileText,
+  RotateCcw,
 } from "lucide-react";
 import { eur } from "@/lib/invoiceCalc";
 import { generateInvoicePdf, type Issuer } from "@/lib/pdf";
