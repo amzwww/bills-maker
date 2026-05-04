@@ -761,6 +761,38 @@ const InvoicesList = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!rectifyOpen} onOpenChange={(o) => !o && setRectifyOpen(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <RotateCcw className="h-5 w-5" />
+              Rectificar factura {rectifyOpen?.invoice_number}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="rounded-md border border-amber-500/40 bg-amber-50 dark:bg-amber-950/30 p-3 text-sm">
+              <p className="text-muted-foreground">
+                Se creará una <strong>factura rectificativa</strong> con los mismos conceptos e importes en <strong>negativo</strong>,
+                anulando la factura original <strong>{rectifyOpen?.invoice_number}</strong> de{" "}
+                <strong>{rectifyOpen?.client_name}</strong> por{" "}
+                <strong>{rectifyOpen ? eur(parseFloat(rectifyOpen.total)) : ""}</strong>.
+              </p>
+              <p className="text-muted-foreground mt-2">
+                Se descargará automáticamente el PDF de la factura rectificativa.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRectifyOpen(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={confirmRectify} disabled={rectifying}>
+              {rectifying ? "Creando…" : "Crear rectificativa"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
