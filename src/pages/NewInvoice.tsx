@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -8,12 +8,25 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Plus, Trash2, FileDown, Camera, Loader2 } from "lucide-react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ArrowLeft, Plus, Trash2, FileDown, Camera, Loader2, Search } from "lucide-react";
 import { useRef } from "react";
 import { toast } from "sonner";
 import { classifyInvoice, computeSubtotal, computeTaxes, eur, round2, type LineItem } from "@/lib/invoiceCalc";
 import { COMPLEMENT_INDENTED_LINE, PRE_PAYMENT_NOTES, POST_PAYMENT_NOTE, ponenciaDescription, type PrePaymentKey } from "@/lib/invoiceTexts";
 import { generateInvoicePdf, type Issuer } from "@/lib/pdf";
+
+type PastClient = {
+  client_name: string;
+  client_tax_id: string | null;
+  client_address_line1: string | null;
+  client_address_line2: string | null;
+  client_city_zip: string | null;
+  client_country: string | null;
+  client_is_foreign: boolean;
+  client_is_canary: boolean;
+};
 
 type InvoiceType = "ponencia" | "complemento" | "sponsor";
 
