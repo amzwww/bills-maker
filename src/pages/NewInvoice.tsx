@@ -454,9 +454,38 @@ const NewInvoice = () => {
 
         {/* Cliente */}
         <Card className="p-6 space-y-4" onPaste={handlePaste}>
-          <div className="flex items-center justify-between flex-wrap gap-2">
+           <div className="flex items-center justify-between flex-wrap gap-2">
             <h2 className="font-semibold">Cliente</h2>
             <div className="flex items-center gap-2">
+              <Popover open={clientSearchOpen} onOpenChange={setClientSearchOpen}>
+                <PopoverTrigger asChild>
+                  <Button type="button" variant="outline" size="sm">
+                    <Search className="h-4 w-4 mr-2" />Cargar cliente anterior
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0" align="end">
+                  <Command>
+                    <CommandInput placeholder="Buscar por nombre o CIF…" />
+                    <CommandList>
+                      <CommandEmpty>Sin resultados</CommandEmpty>
+                      <CommandGroup>
+                        {pastClients.map((c, i) => (
+                          <CommandItem
+                            key={i}
+                            value={`${c.client_name} ${c.client_tax_id || ""}`}
+                            onSelect={() => selectPastClient(c)}
+                          >
+                            <div className="flex flex-col">
+                              <span className="font-medium">{c.client_name}</span>
+                              {c.client_tax_id && <span className="text-xs text-muted-foreground">{c.client_tax_id}</span>}
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
               <input
                 ref={fileInputRef}
                 type="file"
