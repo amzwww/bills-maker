@@ -75,6 +75,7 @@ export type Database = {
           invoice_type: string
           irpf_amount: number
           irpf_rate: number
+          is_rectificative: boolean
           issuer_id: string
           line_items: Json
           notes: string | null
@@ -85,6 +86,7 @@ export type Database = {
           payment_proof_url: string | null
           post_payment_note: string | null
           pre_payment_note: string | null
+          rectified_invoice_number: string | null
           seq: number
           source_pdf_name: string | null
           source_pdf_url: string | null
@@ -114,6 +116,7 @@ export type Database = {
           invoice_type: string
           irpf_amount?: number
           irpf_rate?: number
+          is_rectificative?: boolean
           issuer_id: string
           line_items?: Json
           notes?: string | null
@@ -124,6 +127,7 @@ export type Database = {
           payment_proof_url?: string | null
           post_payment_note?: string | null
           pre_payment_note?: string | null
+          rectified_invoice_number?: string | null
           seq: number
           source_pdf_name?: string | null
           source_pdf_url?: string | null
@@ -153,6 +157,7 @@ export type Database = {
           invoice_type?: string
           irpf_amount?: number
           irpf_rate?: number
+          is_rectificative?: boolean
           issuer_id?: string
           line_items?: Json
           notes?: string | null
@@ -163,6 +168,7 @@ export type Database = {
           payment_proof_url?: string | null
           post_payment_note?: string | null
           pre_payment_note?: string | null
+          rectified_invoice_number?: string | null
           seq?: number
           source_pdf_name?: string | null
           source_pdf_url?: string | null

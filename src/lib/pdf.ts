@@ -38,6 +38,8 @@ export type InvoicePdfData = {
   total: number;
   pre_payment_note?: string | null;
   invoice_type?: string;
+  is_rectificative?: boolean;
+  rectified_invoice_number?: string | null;
 };
 
 function fmtDate(iso: string) {
@@ -73,11 +75,17 @@ export function generateInvoicePdf(data: InvoicePdfData) {
     y += 4;
   }
 
-  // Título FACTURA
+  // Título FACTURA / FACTURA RECTIFICATIVA
+  const titleText = data.is_rectificative ? "FACTURA\nRECTIFICATIVA" : "FACTURA";
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(28);
-  doc.setTextColor(30, 64, 175);
-  doc.text("FACTURA", pageW - margin, margin + 6, { align: "right" });
+  doc.setFontSize(data.is_rectificative ? 20 : 28);
+  doc.setTextColor(data.is_rectificative ? 180 : 30, data.is_rectificative ? 30 : 64, data.is_rectificative ? 30 : 175);
+  if (data.is_rectificative) {
+    doc.text("FACTURA", pageW - margin, margin + 2, { align: "right" });
+    doc.text("RECTIFICATIVA", pageW - margin, margin + 9, { align: "right" });
+  } else {
+    doc.text("FACTURA", pageW - margin, margin + 6, { align: "right" });
+  }
   doc.setTextColor(0, 0, 0);
 
   // Fecha y número
@@ -93,6 +101,13 @@ export function generateInvoicePdf(data: InvoicePdfData) {
   doc.setFont("helvetica", "normal");
   doc.text(data.invoice_number, pageW - margin, y, { align: "right" });
   y += 5;
+  if (data.is_rectificative && data.rectified_invoice_number) {
+    doc.setFont("helvetica", "bold");
+    doc.text("RECTIFICA A:", pageW - margin - 50, y);
+    doc.setFont("helvetica", "normal");
+    doc.text(data.rectified_invoice_number, pageW - margin, y, { align: "right" });
+    y += 5;
+  }
   if (data.our_reference) {
     doc.setFont("helvetica", "bold");
     doc.text("NUESTRA REFERENCIA:", pageW - margin - 50, y);
