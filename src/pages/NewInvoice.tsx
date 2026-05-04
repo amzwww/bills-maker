@@ -296,71 +296,110 @@ const NewInvoice = () => {
     }
     setLoading(true);
     try {
-      const year = parseInt(invoiceDate.slice(0, 4));
-      let seq: number;
-      if (typeof chosenSeq === "number") {
-        // Verificar que el hueco sigue libre
-        const { data: existing } = await supabase
-          .from("invoices")
-          .select("id")
-          .eq("issuer_id", issuerId)
-          .eq("year", year)
-          .eq("seq", chosenSeq)
-          .maybeSingle();
-        if (existing) {
-          toast.error(`El número ${chosenSeq} ya ha sido reutilizado. Recarga la página.`);
-          setLoading(false);
-          return;
-        }
-        seq = chosenSeq;
-      } else {
-        const { data: seqData, error: seqErr } = await supabase.rpc("next_invoice_seq", {
-          _issuer_id: issuerId,
-          _year: year,
-        });
-        if (seqErr || typeof seqData !== "number") throw seqErr || new Error("No seq");
-        seq = seqData;
-      }
-      const invoiceNumber = `${issuerId}-${year}-${String(seq).padStart(3, "0")}`;
-
       const prePaymentText = prePaymentKey === "other" ? (customPrePaymentText.trim() || null) : (PRE_PAYMENT_NOTES[prePaymentKey].text || null);
-
       const computedType = type === "complemento" ? "complemento" : classifyInvoice(items);
 
-      const payload = {
-        issuer_id: issuerId,
-        invoice_number: invoiceNumber,
-        year,
-        seq,
-        invoice_type: computedType,
-        invoice_date: invoiceDate,
-        parent_invoice_number: type === "complemento" ? parentInvoice : null,
-        our_reference: ourReference || null,
-        their_order: theirOrder || null,
-        client_name: clientName,
-        client_tax_id: clientTaxId || null,
-        client_address_line1: clientAddr1 || null,
-        client_address_line2: clientAddr2 || null,
-        client_city_zip: clientCityZip || null,
-        client_country: clientCountry || null,
-        client_is_foreign: isForeign,
-        client_is_canary: isCanary,
-        line_items: items as any,
-        subtotal,
-        vat_rate: taxes.vat_rate,
-        vat_label: taxes.vat_label,
-        vat_amount: taxes.vat_amount,
-        irpf_rate: taxes.irpf_rate,
-        irpf_amount: taxes.irpf_amount,
-        total,
-        pre_payment_note: prePaymentText,
-        post_payment_note: computedType === "sponsor" ? null : POST_PAYMENT_NOTE,
-      };
+      let invoiceNumber: string;
+      let seq: number;
+      let year: number;
 
-      const { error } = await supabase.from("invoices").insert(payload);
-      if (error) throw error;
+      if (editId) {
+        // Edit mode: keep original number/seq/year
+        invoiceNumber = previewNumber;
+        const parts = invoiceNumber.split("-");
+        year = parseInt(parts[1]);
+        seq = parseInt(parts[2]);
 
-      toast.success(`Factura ${invoiceNumber} creada`);
+        const updatePayload = {
+          invoice_type: computedType,
+          invoice_date: invoiceDate,
+          parent_invoice_number: type === "complemento" ? parentInvoice : null,
+          our_reference: ourReference || null,
+          their_order: theirOrder || null,
+          client_name: clientName,
+          client_tax_id: clientTaxId || null,
+          client_address_line1: clientAddr1 || null,
+          client_address_line2: clientAddr2 || null,
+          client_city_zip: clientCityZip || null,
+          client_country: clientCountry || null,
+          client_is_foreign: isForeign,
+          client_is_canary: isCanary,
+          line_items: items as any,
+          subtotal,
+          vat_rate: taxes.vat_rate,
+          vat_label: taxes.vat_label,
+          vat_amount: taxes.vat_amount,
+          irpf_rate: taxes.irpf_rate,
+          irpf_amount: taxes.irpf_amount,
+          total,
+          pre_payment_note: prePaymentText,
+          post_payment_note: computedType === "sponsor" ? null : POST_PAYMENT_NOTE,
+        };
+
+        const { error } = await supabase.from("invoices").update(updatePayload).eq("id", editId);
+        if (error) throw error;
+        toast.success(`Factura ${invoiceNumber} actualizada`);
+      } else {
+        // Create mode
+        year = parseInt(invoiceDate.slice(0, 4));
+        if (typeof chosenSeq === "number") {
+          const { data: existing } = await supabase
+            .from("invoices")
+            .select("id")
+            .eq("issuer_id", issuerId)
+            .eq("year", year)
+            .eq("seq", chosenSeq)
+            .maybeSingle();
+          if (existing) {
+            toast.error(`El número ${chosenSeq} ya ha sido reutilizado. Recarga la página.`);
+            setLoading(false);
+            return;
+          }
+          seq = chosenSeq;
+        } else {
+          const { data: seqData, error: seqErr } = await supabase.rpc("next_invoice_seq", {
+            _issuer_id: issuerId,
+            _year: year,
+          });
+          if (seqErr || typeof seqData !== "number") throw seqErr || new Error("No seq");
+          seq = seqData;
+        }
+        invoiceNumber = `${issuerId}-${year}-${String(seq).padStart(3, "0")}`;
+
+        const payload = {
+          issuer_id: issuerId,
+          invoice_number: invoiceNumber,
+          year,
+          seq,
+          invoice_type: computedType,
+          invoice_date: invoiceDate,
+          parent_invoice_number: type === "complemento" ? parentInvoice : null,
+          our_reference: ourReference || null,
+          their_order: theirOrder || null,
+          client_name: clientName,
+          client_tax_id: clientTaxId || null,
+          client_address_line1: clientAddr1 || null,
+          client_address_line2: clientAddr2 || null,
+          client_city_zip: clientCityZip || null,
+          client_country: clientCountry || null,
+          client_is_foreign: isForeign,
+          client_is_canary: isCanary,
+          line_items: items as any,
+          subtotal,
+          vat_rate: taxes.vat_rate,
+          vat_label: taxes.vat_label,
+          vat_amount: taxes.vat_amount,
+          irpf_rate: taxes.irpf_rate,
+          irpf_amount: taxes.irpf_amount,
+          total,
+          pre_payment_note: prePaymentText,
+          post_payment_note: computedType === "sponsor" ? null : POST_PAYMENT_NOTE,
+        };
+
+        const { error } = await supabase.from("invoices").insert(payload);
+        if (error) throw error;
+        toast.success(`Factura ${invoiceNumber} creada`);
+      }
 
       if (alsoPdf) {
         generateInvoicePdf({
