@@ -508,6 +508,20 @@ const NewInvoice = () => {
         {/* Datos básicos */}
         <Card className="p-6 space-y-4">
           <h2 className="font-semibold">Datos de la factura</h2>
+          {editId && (
+            <div>
+              <Label>Tipo de factura</Label>
+              <Select value={type} onValueChange={(v) => setType(v as InvoiceType)}>
+                <SelectTrigger className="w-full md:w-64"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ponencia">Ponencia</SelectItem>
+                  <SelectItem value="complemento">Complemento</SelectItem>
+                  <SelectItem value="sponsor">Sponsor</SelectItem>
+                  <SelectItem value="formacion">Formación</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="grid md:grid-cols-3 gap-4">
             <div>
               <Label>Fecha de factura</Label>
