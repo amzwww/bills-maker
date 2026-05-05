@@ -108,6 +108,7 @@ const NewInvoice = () => {
       const { data: inv } = await supabase.from("invoices").select("*").eq("id", editId).single();
       if (!inv) return;
       setEditLoaded(true);
+      if (inv.invoice_type) setType(inv.invoice_type as InvoiceType);
       setInvoiceDate(inv.invoice_date);
       setOurReference(inv.our_reference || "");
       setTheirOrder(inv.their_order || "");
