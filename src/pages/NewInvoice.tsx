@@ -28,14 +28,15 @@ type PastClient = {
   client_is_canary: boolean;
 };
 
-type InvoiceType = "ponencia" | "complemento" | "sponsor";
+type InvoiceType = "ponencia" | "complemento" | "sponsor" | "formacion";
 
 const NewInvoice = () => {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const issuerId = (params.get("issuer") || "JHE") as "JHE" | "BN";
-  const type = (params.get("type") || "ponencia") as InvoiceType;
+  const initialType = (params.get("type") || "ponencia") as InvoiceType;
   const editId = params.get("edit"); // uuid of invoice being edited
+  const [type, setType] = useState<InvoiceType>(initialType);
 
   const [issuer, setIssuer] = useState<Issuer | null>(null);
   const [loading, setLoading] = useState(false);
@@ -107,6 +108,7 @@ const NewInvoice = () => {
       const { data: inv } = await supabase.from("invoices").select("*").eq("id", editId).single();
       if (!inv) return;
       setEditLoaded(true);
+      if (inv.invoice_type) setType(inv.invoice_type as InvoiceType);
       setInvoiceDate(inv.invoice_date);
       setOurReference(inv.our_reference || "");
       setTheirOrder(inv.their_order || "");
@@ -305,7 +307,7 @@ const NewInvoice = () => {
     setLoading(true);
     try {
       const prePaymentText = prePaymentKey === "other" ? (customPrePaymentText.trim() || null) : (PRE_PAYMENT_NOTES[prePaymentKey].text || null);
-      const computedType = type === "complemento" ? "complemento" : classifyInvoice(items);
+      const computedType = (type === "complemento" || type === "formacion") ? type : classifyInvoice(items);
 
       let invoiceNumber: string;
       let seq: number;
@@ -455,7 +457,7 @@ const NewInvoice = () => {
     }
   };
 
-  const typeLabel = { ponencia: "Ponencia", complemento: "Complemento", sponsor: "Sponsor" }[type];
+  const typeLabel = { ponencia: "Ponencia", complemento: "Complemento", sponsor: "Sponsor", formacion: "Formación" }[type];
 
   return (
     <div className="min-h-screen bg-background pb-16">
@@ -478,11 +480,8 @@ const NewInvoice = () => {
           <Card className="p-4 border-primary/40 bg-muted">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <div className="flex-1 text-sm">
-                <strong>Huecos en la numeración:</strong> existe(n) número(s) eliminado(s):{" "}
-                <span className="font-mono">
-                  {gaps.map((g) => `${issuerId}-${invoiceDate.slice(0, 4)}-${String(g).padStart(3, "0")}`).join(", ")}
-                </span>
-                . ¿Quieres reutilizar uno en lugar del{" "}
+                <strong>Huecos en la numeración:</strong> {gaps.length} número{gaps.length > 1 ? "s" : ""} eliminado{gaps.length > 1 ? "s" : ""}.
+                {" "}¿Quieres reutilizar uno en lugar del{" "}
                 <span className="font-mono">{nextSeq ? `${issuerId}-${invoiceDate.slice(0, 4)}-${String(nextSeq).padStart(3, "0")}` : "..."}</span>?
               </div>
               <div className="flex items-center gap-2">
@@ -491,7 +490,7 @@ const NewInvoice = () => {
                   onValueChange={(v) => setChosenSeq(v === "next" ? null : parseInt(v))}
                 >
                   <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-64">
                     <SelectItem value="next">
                       Siguiente ({nextSeq ? String(nextSeq).padStart(3, "0") : "..."})
                     </SelectItem>
@@ -510,6 +509,20 @@ const NewInvoice = () => {
         {/* Datos básicos */}
         <Card className="p-6 space-y-4">
           <h2 className="font-semibold">Datos de la factura</h2>
+          {editId && (
+            <div>
+              <Label>Tipo de factura</Label>
+              <Select value={type} onValueChange={(v) => setType(v as InvoiceType)}>
+                <SelectTrigger className="w-full md:w-64"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ponencia">Ponencia</SelectItem>
+                  <SelectItem value="complemento">Complemento</SelectItem>
+                  <SelectItem value="sponsor">Sponsor</SelectItem>
+                  <SelectItem value="formacion">Formación</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="grid md:grid-cols-3 gap-4">
             <div>
               <Label>Fecha de factura</Label>

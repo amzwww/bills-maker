@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Mic, PlusCircle, Trophy } from "lucide-react";
+import { ArrowLeft, Mic, PlusCircle, Trophy, GraduationCap } from "lucide-react";
 
 const JonOptions = () => {
   return (
@@ -18,7 +18,7 @@ const JonOptions = () => {
         </div>
       </header>
       <main className="container py-12">
-        <div className="grid md:grid-cols-3 gap-5 max-w-5xl">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 max-w-5xl">
           <Link to="/nueva?issuer=JHE&type=ponencia">
             <Card className="p-6 hover:border-primary hover:shadow-lg transition-all cursor-pointer h-full">
               <Mic className="h-8 w-8 text-primary mb-3" />
@@ -38,6 +38,13 @@ const JonOptions = () => {
               <Trophy className="h-8 w-8 text-primary mb-3" />
               <h3 className="font-bold text-lg mb-1">C) Sponsor</h3>
               <p className="text-sm text-muted-foreground">Factura libre por patrocinio.</p>
+            </Card>
+          </Link>
+          <Link to="/nueva?issuer=JHE&type=formacion">
+            <Card className="p-6 hover:border-primary hover:shadow-lg transition-all cursor-pointer h-full">
+              <GraduationCap className="h-8 w-8 text-primary mb-3" />
+              <h3 className="font-bold text-lg mb-1">D) Formación</h3>
+              <p className="text-sm text-muted-foreground">Factura por servicios de formación.</p>
             </Card>
           </Link>
         </div>
