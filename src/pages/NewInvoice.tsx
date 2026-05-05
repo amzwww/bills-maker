@@ -60,6 +60,10 @@ const NewInvoice = () => {
   const [clientCountry, setClientCountry] = useState("");
   const [isForeign, setIsForeign] = useState(false);
   const [isCanary, setIsCanary] = useState(false);
+  const [isUniversity, setIsUniversity] = useState(false);
+  const [uniAccountingOffice, setUniAccountingOffice] = useState("");
+  const [uniManagingBody, setUniManagingBody] = useState("");
+  const [uniProcessingUnit, setUniProcessingUnit] = useState("");
 
   // Tipo-específicos
   const [ponenciaDate, setPonenciaDate] = useState(""); // yyyy-mm-dd, descripción de ponencia
@@ -117,6 +121,10 @@ const NewInvoice = () => {
       setClientCountry(inv.client_country || "");
       setIsForeign(inv.client_is_foreign);
       setIsCanary(inv.client_is_canary);
+      setIsUniversity(!!(inv as any).is_university);
+      setUniAccountingOffice((inv as any).university_accounting_office || "");
+      setUniManagingBody((inv as any).university_managing_body || "");
+      setUniProcessingUnit((inv as any).university_processing_unit || "");
       setParentInvoice(inv.parent_invoice_number || "");
       setItems((inv.line_items as any[]) || [{ description: "", unit_price: 0, quantity: 1, total: 0 }]);
       setPreviewNumber(inv.invoice_number);
@@ -324,6 +332,10 @@ const NewInvoice = () => {
           client_country: clientCountry || null,
           client_is_foreign: isForeign,
           client_is_canary: isCanary,
+          is_university: isUniversity,
+          university_accounting_office: isUniversity ? (uniAccountingOffice || null) : null,
+          university_managing_body: isUniversity ? (uniManagingBody || null) : null,
+          university_processing_unit: isUniversity ? (uniProcessingUnit || null) : null,
           line_items: items as any,
           subtotal,
           vat_rate: taxes.vat_rate,
@@ -384,6 +396,10 @@ const NewInvoice = () => {
           client_country: clientCountry || null,
           client_is_foreign: isForeign,
           client_is_canary: isCanary,
+          is_university: isUniversity,
+          university_accounting_office: isUniversity ? (uniAccountingOffice || null) : null,
+          university_managing_body: isUniversity ? (uniManagingBody || null) : null,
+          university_processing_unit: isUniversity ? (uniProcessingUnit || null) : null,
           line_items: items as any,
           subtotal,
           vat_rate: taxes.vat_rate,
@@ -424,6 +440,10 @@ const NewInvoice = () => {
           total,
           pre_payment_note: prePaymentText,
           invoice_type: computedType,
+          is_university: isUniversity,
+          university_accounting_office: isUniversity ? uniAccountingOffice : undefined,
+          university_managing_body: isUniversity ? uniManagingBody : undefined,
+          university_processing_unit: isUniversity ? uniProcessingUnit : undefined,
         });
       }
 
@@ -625,7 +645,27 @@ const NewInvoice = () => {
               <Checkbox checked={isCanary} onCheckedChange={(v) => { setIsCanary(!!v); if (v) setIsForeign(false); }} />
               <span className="text-sm">Canarias (IGIC 7% en lugar de IVA)</span>
             </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <Checkbox checked={isUniversity} onCheckedChange={(v) => { setIsUniversity(!!v); if (!v) { setUniAccountingOffice(""); setUniManagingBody(""); setUniProcessingUnit(""); } }} />
+              <span className="text-sm">Universidad</span>
+            </label>
           </div>
+          {isUniversity && (
+            <div className="grid md:grid-cols-3 gap-4 pt-2">
+              <div>
+                <Label>Oficina contable</Label>
+                <Input value={uniAccountingOffice} onChange={(e) => setUniAccountingOffice(e.target.value)} />
+              </div>
+              <div>
+                <Label>Órgano Gestor</Label>
+                <Input value={uniManagingBody} onChange={(e) => setUniManagingBody(e.target.value)} />
+              </div>
+              <div>
+                <Label>Unidad Tramitadora</Label>
+                <Input value={uniProcessingUnit} onChange={(e) => setUniProcessingUnit(e.target.value)} />
+              </div>
+            </div>
+          )}
         </Card>
 
         {/* Líneas */}

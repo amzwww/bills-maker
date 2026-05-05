@@ -76,6 +76,7 @@ export type Database = {
           irpf_amount: number
           irpf_rate: number
           is_rectificative: boolean
+          is_university: boolean
           issuer_id: string
           line_items: Json
           notes: string | null
@@ -94,6 +95,9 @@ export type Database = {
           subtotal: number
           their_order: string | null
           total: number
+          university_accounting_office: string | null
+          university_managing_body: string | null
+          university_processing_unit: string | null
           updated_at: string
           vat_amount: number
           vat_label: string
@@ -117,6 +121,7 @@ export type Database = {
           irpf_amount?: number
           irpf_rate?: number
           is_rectificative?: boolean
+          is_university?: boolean
           issuer_id: string
           line_items?: Json
           notes?: string | null
@@ -135,6 +140,9 @@ export type Database = {
           subtotal?: number
           their_order?: string | null
           total?: number
+          university_accounting_office?: string | null
+          university_managing_body?: string | null
+          university_processing_unit?: string | null
           updated_at?: string
           vat_amount?: number
           vat_label?: string
@@ -158,6 +166,7 @@ export type Database = {
           irpf_amount?: number
           irpf_rate?: number
           is_rectificative?: boolean
+          is_university?: boolean
           issuer_id?: string
           line_items?: Json
           notes?: string | null
@@ -176,6 +185,9 @@ export type Database = {
           subtotal?: number
           their_order?: string | null
           total?: number
+          university_accounting_office?: string | null
+          university_managing_body?: string | null
+          university_processing_unit?: string | null
           updated_at?: string
           vat_amount?: number
           vat_label?: string

@@ -40,6 +40,10 @@ export type InvoicePdfData = {
   invoice_type?: string;
   is_rectificative?: boolean;
   rectified_invoice_number?: string | null;
+  is_university?: boolean;
+  university_accounting_office?: string | null;
+  university_managing_body?: string | null;
+  university_processing_unit?: string | null;
 };
 
 function fmtDate(iso: string) {
@@ -129,8 +133,13 @@ export function generateInvoicePdf(data: InvoicePdfData) {
   doc.setFontSize(10);
   doc.text("FACTURAR A:", margin, y);
   y += 5;
-  doc.text(data.client_name, margin, y);
-  y += 5;
+  // Handle long client names — wrap to multiple lines
+  const maxClientW = pageW - margin * 2;
+  const nameLines = doc.splitTextToSize(data.client_name, maxClientW) as string[];
+  for (const nl of nameLines) {
+    doc.text(nl, margin, y);
+    y += 5;
+  }
   doc.setFont("helvetica", "normal");
   const clientLines = [
     data.client_tax_id,
@@ -147,6 +156,25 @@ export function generateInvoicePdf(data: InvoicePdfData) {
   for (const l of dedup) {
     doc.text(l, margin, y);
     y += 5;
+  }
+
+  // University fields
+  if (data.is_university) {
+    y += 2;
+    const uniFields = [
+      { label: "Oficina contable:", value: data.university_accounting_office },
+      { label: "Órgano Gestor:", value: data.university_managing_body },
+      { label: "Unidad Tramitadora:", value: data.university_processing_unit },
+    ];
+    for (const uf of uniFields) {
+      if (uf.value && uf.value.trim()) {
+        doc.setFont("helvetica", "bold");
+        doc.text(uf.label, margin, y);
+        doc.setFont("helvetica", "normal");
+        doc.text(uf.value, margin + doc.getTextWidth(uf.label) + 2, y);
+        y += 5;
+      }
+    }
   }
 
   y += 4;
