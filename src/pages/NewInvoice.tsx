@@ -440,6 +440,10 @@ const NewInvoice = () => {
           total,
           pre_payment_note: prePaymentText,
           invoice_type: computedType,
+          is_university: isUniversity,
+          university_accounting_office: isUniversity ? uniAccountingOffice : undefined,
+          university_managing_body: isUniversity ? uniManagingBody : undefined,
+          university_processing_unit: isUniversity ? uniProcessingUnit : undefined,
         });
       }
 
