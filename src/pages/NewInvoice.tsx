@@ -478,11 +478,8 @@ const NewInvoice = () => {
           <Card className="p-4 border-primary/40 bg-muted">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <div className="flex-1 text-sm">
-                <strong>Huecos en la numeración:</strong> existe(n) número(s) eliminado(s):{" "}
-                <span className="font-mono">
-                  {gaps.map((g) => `${issuerId}-${invoiceDate.slice(0, 4)}-${String(g).padStart(3, "0")}`).join(", ")}
-                </span>
-                . ¿Quieres reutilizar uno en lugar del{" "}
+                <strong>Huecos en la numeración:</strong> {gaps.length} número{gaps.length > 1 ? "s" : ""} eliminado{gaps.length > 1 ? "s" : ""}.
+                {" "}¿Quieres reutilizar uno en lugar del{" "}
                 <span className="font-mono">{nextSeq ? `${issuerId}-${invoiceDate.slice(0, 4)}-${String(nextSeq).padStart(3, "0")}` : "..."}</span>?
               </div>
               <div className="flex items-center gap-2">
@@ -491,7 +488,7 @@ const NewInvoice = () => {
                   onValueChange={(v) => setChosenSeq(v === "next" ? null : parseInt(v))}
                 >
                   <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-64">
                     <SelectItem value="next">
                       Siguiente ({nextSeq ? String(nextSeq).padStart(3, "0") : "..."})
                     </SelectItem>
