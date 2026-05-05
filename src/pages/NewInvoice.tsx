@@ -28,7 +28,7 @@ type PastClient = {
   client_is_canary: boolean;
 };
 
-type InvoiceType = "ponencia" | "complemento" | "sponsor";
+type InvoiceType = "ponencia" | "complemento" | "sponsor" | "formacion";
 
 const NewInvoice = () => {
   const [params] = useSearchParams();
@@ -305,7 +305,7 @@ const NewInvoice = () => {
     setLoading(true);
     try {
       const prePaymentText = prePaymentKey === "other" ? (customPrePaymentText.trim() || null) : (PRE_PAYMENT_NOTES[prePaymentKey].text || null);
-      const computedType = type === "complemento" ? "complemento" : classifyInvoice(items);
+      const computedType = (type === "complemento" || type === "formacion") ? type : classifyInvoice(items);
 
       let invoiceNumber: string;
       let seq: number;
@@ -455,7 +455,7 @@ const NewInvoice = () => {
     }
   };
 
-  const typeLabel = { ponencia: "Ponencia", complemento: "Complemento", sponsor: "Sponsor" }[type];
+  const typeLabel = { ponencia: "Ponencia", complemento: "Complemento", sponsor: "Sponsor", formacion: "Formación" }[type];
 
   return (
     <div className="min-h-screen bg-background pb-16">
