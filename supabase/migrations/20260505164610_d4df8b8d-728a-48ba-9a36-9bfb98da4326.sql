@@ -1,0 +1,1 @@
+UPDATE public.invoices SET seq = 82, invoice_number = 'JHE-2026-082' WHERE issuer_id = 'JHE' AND year = 2026 AND seq = 172;
