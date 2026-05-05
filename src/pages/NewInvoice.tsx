@@ -121,6 +121,10 @@ const NewInvoice = () => {
       setClientCountry(inv.client_country || "");
       setIsForeign(inv.client_is_foreign);
       setIsCanary(inv.client_is_canary);
+      setIsUniversity(!!(inv as any).is_university);
+      setUniAccountingOffice((inv as any).university_accounting_office || "");
+      setUniManagingBody((inv as any).university_managing_body || "");
+      setUniProcessingUnit((inv as any).university_processing_unit || "");
       setParentInvoice(inv.parent_invoice_number || "");
       setItems((inv.line_items as any[]) || [{ description: "", unit_price: 0, quantity: 1, total: 0 }]);
       setPreviewNumber(inv.invoice_number);
