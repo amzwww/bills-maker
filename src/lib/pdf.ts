@@ -40,6 +40,10 @@ export type InvoicePdfData = {
   invoice_type?: string;
   is_rectificative?: boolean;
   rectified_invoice_number?: string | null;
+  is_university?: boolean;
+  university_accounting_office?: string | null;
+  university_managing_body?: string | null;
+  university_processing_unit?: string | null;
 };
 
 function fmtDate(iso: string) {
