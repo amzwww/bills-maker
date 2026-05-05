@@ -641,7 +641,27 @@ const NewInvoice = () => {
               <Checkbox checked={isCanary} onCheckedChange={(v) => { setIsCanary(!!v); if (v) setIsForeign(false); }} />
               <span className="text-sm">Canarias (IGIC 7% en lugar de IVA)</span>
             </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <Checkbox checked={isUniversity} onCheckedChange={(v) => { setIsUniversity(!!v); if (!v) { setUniAccountingOffice(""); setUniManagingBody(""); setUniProcessingUnit(""); } }} />
+              <span className="text-sm">Universidad</span>
+            </label>
           </div>
+          {isUniversity && (
+            <div className="grid md:grid-cols-3 gap-4 pt-2">
+              <div>
+                <Label>Oficina contable</Label>
+                <Input value={uniAccountingOffice} onChange={(e) => setUniAccountingOffice(e.target.value)} />
+              </div>
+              <div>
+                <Label>Órgano Gestor</Label>
+                <Input value={uniManagingBody} onChange={(e) => setUniManagingBody(e.target.value)} />
+              </div>
+              <div>
+                <Label>Unidad Tramitadora</Label>
+                <Input value={uniProcessingUnit} onChange={(e) => setUniProcessingUnit(e.target.value)} />
+              </div>
+            </div>
+          )}
         </Card>
 
         {/* Líneas */}
