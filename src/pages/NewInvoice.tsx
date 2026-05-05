@@ -34,8 +34,9 @@ const NewInvoice = () => {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const issuerId = (params.get("issuer") || "JHE") as "JHE" | "BN";
-  const type = (params.get("type") || "ponencia") as InvoiceType;
+  const initialType = (params.get("type") || "ponencia") as InvoiceType;
   const editId = params.get("edit"); // uuid of invoice being edited
+  const [type, setType] = useState<InvoiceType>(initialType);
 
   const [issuer, setIssuer] = useState<Issuer | null>(null);
   const [loading, setLoading] = useState(false);
