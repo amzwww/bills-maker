@@ -448,6 +448,9 @@ const InvoicesList = () => {
                 <p className="font-semibold text-amber-800 dark:text-amber-300">
                   {overdueInvoices.length} factura{overdueInvoices.length > 1 ? "s" : ""} pendiente{overdueInvoices.length > 1 ? "s" : ""} de cobro con más de 30 días
                 </p>
+                <p className="text-xl font-bold text-amber-900 dark:text-amber-200 mt-1">
+                  Total: {eur(overdueInvoices.reduce((s, r) => s + (parseFloat(r.total) || 0), 0))}
+                </p>
                 <ul className="mt-1 space-y-0.5 text-amber-700 dark:text-amber-400 max-h-48 overflow-y-auto pr-2">
                   {overdueInvoices.map((inv) => {
                     const days = Math.floor((Date.now() - new Date(inv.invoice_date).getTime()) / 86400000);
