@@ -2,7 +2,6 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-// PWA: registrar service worker solo en producción y fuera de iframes/preview
 const isInIframe = (() => {
   try {
     return window.self !== window.top;
@@ -17,7 +16,6 @@ const isPreviewHost =
   window.location.hostname.includes("lovable.app");
 
 if (isInIframe || isPreviewHost) {
-  // Limpieza defensiva en preview: nada de SW aquí
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.getRegistrations().then((rs) => rs.forEach((r) => r.unregister()));
   }
@@ -26,22 +24,61 @@ if (isInIframe || isPreviewHost) {
     const updateSW = registerSW({
       immediate: true,
       onNeedRefresh() {
-        // Auto-actualizar cuando hay nueva versión
-        if (confirm("Hay una nueva versión disponible. ¿Actualizar ahora?")) {
-          updateSW(true);
-        }
+        // Auto-actualizar SIN preguntar al usuario
+        updateSW(true);
       },
       onOfflineReady() {
         console.log("App lista para uso offline");
       },
     });
 
-    // Comprobar actualizaciones cada vez que la app vuelve a primer plano
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") {
         updateSW();
       }
     });
+  });
+}
+
+// --- Auto-actualización para usuarios de navegador (sin PWA/SW) ---
+// Captura el fingerprint de los scripts del HTML inicial.
+// Cada vez que el usuario vuelve a la pestaña, re-descarga index.html
+// y si los scripts cambiaron (= nuevo deploy), recarga la página.
+if (import.meta.env.PROD && !isInIframe && !isPreviewHost) {
+  const extractScripts = (html: string) => {
+    const matches = html.match(/<script[^>]+src="([^"]+)"/g);
+    return matches ? matches.join("|") : "";
+  };
+
+  let currentFingerprint = "";
+
+  // Capturar fingerprint inicial
+  fetch(window.location.origin + "/?_vc=" + Date.now(), {
+    cache: "no-store",
+    headers: { Accept: "text/html" },
+  })
+    .then((r) => r.text())
+    .then((html) => {
+      currentFingerprint = extractScripts(html);
+    })
+    .catch(() => {});
+
+  // Comprobar en cada vuelta a primer plano
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible" || !currentFingerprint) return;
+
+    fetch(window.location.origin + "/?_vc=" + Date.now(), {
+      cache: "no-store",
+      headers: { Accept: "text/html" },
+    })
+      .then((r) => r.text())
+      .then((html) => {
+        const newFP = extractScripts(html);
+        if (newFP && newFP !== currentFingerprint) {
+          window.location.reload();
+        }
+      })
+      .catch(() => {});
   });
 }
 
