@@ -61,8 +61,11 @@ const InvoicesList = () => {
   // filtros y orden
   const [clientFilter, setClientFilter] = useState("");
   const [conceptFilter, setConceptFilter] = useState("");
+  const [numberFilter, setNumberFilter] = useState("");
   const [issuerFilter, setIssuerFilter] = useState<"all" | "JHE" | "BN">("all");
   const [paidFilter, setPaidFilter] = useState<"all" | "unpaid" | "paid">("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | "ponencia" | "mixta" | "formacion" | "gastos" | "sponsor" | "rectificativa" | "no-rectificativa">("all");
+  const [overdueDays, setOverdueDays] = useState<"all" | "20" | "30">("30");
   const [sortKey, setSortKey] = useState<SortKey>("invoice_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
