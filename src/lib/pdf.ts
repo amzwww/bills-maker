@@ -278,5 +278,12 @@ export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" =
     doc.text(postLines, margin, cursor);
   }
 
-  doc.save(`${data.invoice_number} - ${data.client_name}.pdf`);
+  if (mode === "open") {
+    const blob = doc.output("blob");
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } else {
+    doc.save(`${data.invoice_number} - ${data.client_name}.pdf`);
+  }
 }
