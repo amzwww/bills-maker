@@ -477,31 +477,66 @@ const InvoicesList = () => {
         </div>
       </header>
       <main className="container py-6 space-y-4">
-        {overdueInvoices.length > 0 && (
-          <Card className="p-4 border-amber-500/50 bg-amber-50 dark:bg-amber-950/30">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
-              <div className="text-sm flex-1 min-w-0">
+        <Card className="p-4 border-amber-500/50 bg-amber-50 dark:bg-amber-950/30">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+            <div className="text-sm flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
                 <p className="font-semibold text-amber-800 dark:text-amber-300">
-                  {overdueInvoices.length} factura{overdueInvoices.length > 1 ? "s" : ""} pendiente{overdueInvoices.length > 1 ? "s" : ""} de cobro con más de 30 días
+                  {overdueInvoices.length} factura{overdueInvoices.length === 1 ? "" : "s"} pendiente{overdueInvoices.length === 1 ? "" : "s"} de cobro
+                  {overdueDays !== "all" && ` con más de ${overdueDays} días`}
                 </p>
-                <p className="text-xl font-bold text-amber-900 dark:text-amber-200 mt-1">
-                  Total: {eur(overdueInvoices.reduce((s, r) => s + (parseFloat(r.total) || 0), 0))}
-                </p>
-                <ul className="mt-1 space-y-0.5 text-amber-700 dark:text-amber-400 max-h-48 overflow-y-auto pr-2">
-                  {overdueInvoices.map((inv) => {
-                    const days = Math.floor((Date.now() - new Date(inv.invoice_date).getTime()) / 86400000);
-                    return (
-                      <li key={inv.id} className="font-mono text-xs">
-                        {inv.invoice_number} — {inv.client_name} — {eur(parseFloat(inv.total))} — {days} días
-                      </li>
-                    );
-                  })}
-                </ul>
+                <div className="flex gap-1">
+                  {(["20", "30", "all"] as const).map((v) => (
+                    <Button
+                      key={v}
+                      type="button"
+                      size="sm"
+                      variant={overdueDays === v ? "default" : "outline"}
+                      onClick={() => setOverdueDays(v)}
+                    >
+                      {v === "all" ? "Todas" : `${v} días`}
+                    </Button>
+                  ))}
+                </div>
               </div>
+              <p className="text-xl font-bold text-amber-900 dark:text-amber-200 mt-1">
+                Total: {eur(overdueInvoices.reduce((s, r) => s + (parseFloat(r.total) || 0), 0))}
+              </p>
+              <ul className="mt-1 space-y-0.5 text-amber-700 dark:text-amber-400 max-h-48 overflow-y-auto pr-2">
+                {overdueInvoices.map((inv) => {
+                  const days = Math.floor((Date.now() - new Date(inv.invoice_date).getTime()) / 86400000);
+                  return (
+                    <li key={inv.id} className="font-mono text-xs">
+                      {inv.invoice_number} — {inv.client_name} — {eur(parseFloat(inv.total))} — {days} días
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
-          </Card>
-        )}
+          </div>
+        </Card>
+
+        <Card className="p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="h-4 w-4 text-primary" />
+            <h2 className="text-sm font-semibold">Tiempo medio de cobro (días)</h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {paymentStats.map((s) => (
+              <div key={s.key} className="rounded-md border bg-muted/30 p-3">
+                <div className="text-xs text-muted-foreground">{s.label}</div>
+                <div className="text-2xl font-bold">
+                  {s.avgDays === null ? "—" : Math.round(s.avgDays)}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {s.count} factura{s.count === 1 ? "" : "s"} cobrada{s.count === 1 ? "" : "s"}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
         <Card className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto_auto_auto] gap-3 items-end">
             <div>
