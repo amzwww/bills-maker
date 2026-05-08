@@ -484,121 +484,126 @@ const InvoicesList = () => {
         </div>
       </header>
       <main className="container py-6 space-y-4">
-        <Card className="p-4 border-amber-500/50 bg-amber-50 dark:bg-amber-950/30">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
-            <div className="text-sm flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-3 flex-wrap">
-                <p className="font-semibold text-amber-800 dark:text-amber-300">
-                  {overdueInvoices.length} factura{overdueInvoices.length === 1 ? "" : "s"} pendiente{overdueInvoices.length === 1 ? "" : "s"} de cobro
-                  {overdueDays !== "all" && ` con más de ${overdueDays} días`}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+          <Card className="p-4 border-amber-500/50 bg-amber-50 dark:bg-amber-950/30 lg:col-span-2">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+              <div className="text-sm flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <p className="font-semibold text-amber-800 dark:text-amber-300 text-sm">
+                    {overdueInvoices.length} pendiente{overdueInvoices.length === 1 ? "" : "s"}
+                    {overdueDays !== "all" && ` >${overdueDays}d`}
+                  </p>
+                  <div className="flex gap-1">
+                    {(["20", "30", "all"] as const).map((v) => (
+                      <Button
+                        key={v}
+                        type="button"
+                        size="sm"
+                        variant={overdueDays === v ? "default" : "outline"}
+                        onClick={() => setOverdueDays(v)}
+                      >
+                        {v === "all" ? "Todas" : `${v}d`}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                <p className="text-lg font-bold text-amber-900 dark:text-amber-200 mt-1">
+                  {eur(overdueInvoices.reduce((s, r) => s + (parseFloat(r.total) || 0), 0))}
                 </p>
-                <div className="flex gap-1">
-                  {(["20", "30", "all"] as const).map((v) => (
-                    <Button
-                      key={v}
-                      type="button"
-                      size="sm"
-                      variant={overdueDays === v ? "default" : "outline"}
-                      onClick={() => setOverdueDays(v)}
-                    >
-                      {v === "all" ? "Todas" : `${v} días`}
-                    </Button>
-                  ))}
-                </div>
+                <ul className="mt-1 space-y-0.5 text-amber-700 dark:text-amber-400 max-h-40 overflow-y-auto pr-2">
+                  {overdueInvoices.map((inv) => {
+                    const days = Math.floor((Date.now() - new Date(inv.invoice_date).getTime()) / 86400000);
+                    return (
+                      <li key={inv.id} className="font-mono text-xs">
+                        {inv.invoice_number} — {inv.client_name} — {eur(parseFloat(inv.total))} — {days}d
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
-              <p className="text-xl font-bold text-amber-900 dark:text-amber-200 mt-1">
-                Total: {eur(overdueInvoices.reduce((s, r) => s + (parseFloat(r.total) || 0), 0))}
-              </p>
-              <ul className="mt-1 space-y-0.5 text-amber-700 dark:text-amber-400 max-h-48 overflow-y-auto pr-2">
-                {overdueInvoices.map((inv) => {
-                  const days = Math.floor((Date.now() - new Date(inv.invoice_date).getTime()) / 86400000);
-                  return (
-                    <li key={inv.id} className="font-mono text-xs">
-                      {inv.invoice_number} — {inv.client_name} — {eur(parseFloat(inv.total))} — {days} días
-                    </li>
-                  );
-                })}
-              </ul>
             </div>
-          </div>
-        </Card>
+          </Card>
 
-        <Card className="p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="h-4 w-4 text-primary" />
-            <h2 className="text-sm font-semibold">Tiempo medio de cobro (días)</h2>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {paymentStats.map((s) => (
-              <div key={s.key} className="rounded-md border bg-muted/30 p-3">
-                <div className="text-xs text-muted-foreground">{s.label}</div>
-                <div className="text-2xl font-bold">
-                  {s.avgDays === null ? "—" : Math.round(s.avgDays)}
+          <Card className="p-4 lg:col-span-3">
+            <div className="flex items-center gap-2 mb-3">
+              <TrendingUp className="h-4 w-4 text-primary" />
+              <h2 className="text-sm font-semibold">Tiempo medio de cobro (días)</h2>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {paymentStats.map((s) => (
+                <div key={s.key} className="rounded-md border bg-muted/30 p-3">
+                  <div className="text-xs text-muted-foreground">{s.label}</div>
+                  <div className="text-2xl font-bold">
+                    {s.avgDays === null ? "—" : Math.round(s.avgDays)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {s.count} cobrada{s.count === 1 ? "" : "s"}
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  {s.count} factura{s.count === 1 ? "" : "s"} cobrada{s.count === 1 ? "" : "s"}
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
+              ))}
+            </div>
+          </Card>
+        </div>
 
-        <Card className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+        <Card className="p-3">
+          <div className="flex flex-wrap items-end gap-x-3 gap-y-2">
             <div>
-              <Label className="text-xs">Filtrar por nº factura</Label>
+              <Label className="text-xs">Nº factura</Label>
               <div className="relative">
                 <Input
                   value={numberFilter}
                   onChange={(e) => setNumberFilter(e.target.value)}
-                  placeholder="Ej. JHE-2025-001"
+                  placeholder="JHE-…"
+                  className="h-8 w-32 text-sm pr-7"
                 />
                 {numberFilter && (
                   <button
                     onClick={() => setNumberFilter("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     aria-label="Limpiar"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3.5 w-3.5" />
                   </button>
                 )}
               </div>
             </div>
             <div>
-              <Label className="text-xs">Filtrar por cliente</Label>
+              <Label className="text-xs">Cliente</Label>
               <div className="relative">
                 <Input
                   value={clientFilter}
                   onChange={(e) => setClientFilter(e.target.value)}
-                  placeholder="Ej. KIA, Mahou…"
+                  placeholder="Cliente…"
+                  className="h-8 w-32 text-sm pr-7"
                 />
                 {clientFilter && (
                   <button
                     onClick={() => setClientFilter("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     aria-label="Limpiar"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3.5 w-3.5" />
                   </button>
                 )}
               </div>
             </div>
             <div>
-              <Label className="text-xs">Filtrar por concepto</Label>
+              <Label className="text-xs">Concepto</Label>
               <div className="relative">
                 <Input
                   value={conceptFilter}
                   onChange={(e) => setConceptFilter(e.target.value)}
-                  placeholder="Ej. ponencia, gastos, sponsor…"
+                  placeholder="Concepto…"
+                  className="h-8 w-32 text-sm pr-7"
                 />
                 {conceptFilter && (
                   <button
                     onClick={() => setConceptFilter("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     aria-label="Limpiar"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3.5 w-3.5" />
                   </button>
                 )}
               </div>
@@ -635,32 +640,66 @@ const InvoicesList = () => {
                 ))}
               </div>
             </div>
-            <div className="md:col-span-3">
+            <div>
               <Label className="text-xs">Tipo de factura</Label>
-              <div className="flex gap-1 flex-wrap">
-                {([
-                  ["all", "Todas"],
-                  ["no-rectificativa", "Sin rectificativas"],
-                  ["ponencia", "Ponencia"],
-                  ["mixta", "Mixta"],
-                  ["formacion", "Formación"],
-                  ["gastos", "Gastos"],
-                  ["sponsor", "Sponsor"],
-                  ["rectificativa", "Rectificativas"],
-                ] as const).map(([v, label]) => (
-                  <Button
-                    key={v}
-                    type="button"
-                    size="sm"
-                    variant={typeFilter === v ? "default" : "outline"}
-                    onClick={() => setTypeFilter(v)}
-                  >
-                    {label}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button type="button" variant="outline" size="sm" className="justify-between min-w-[160px]">
+                    <span className="truncate">
+                      {typeFilter.size === 0
+                        ? "Todas"
+                        : `${typeFilter.size} seleccionada${typeFilter.size === 1 ? "" : "s"}`}
+                    </span>
+                    <ChevronDown className="h-3.5 w-3.5 ml-2 opacity-60" />
                   </Button>
-                ))}
-              </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-2" align="start">
+                  <div className="space-y-1">
+                    {([
+                      ["ponencia", "Ponencia"],
+                      ["mixta", "Mixta"],
+                      ["formacion", "Formación"],
+                      ["gastos", "Gastos"],
+                      ["sponsor", "Sponsor"],
+                      ["rectificativa", "Rectificativas"],
+                    ] as const).map(([v, label]) => {
+                      const checked = typeFilter.has(v);
+                      return (
+                        <label
+                          key={v}
+                          className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-sm"
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={(c) => {
+                              setTypeFilter((prev) => {
+                                const next = new Set(prev);
+                                if (c) next.add(v);
+                                else next.delete(v);
+                                return next;
+                              });
+                            }}
+                          />
+                          {label}
+                        </label>
+                      );
+                    })}
+                    {typeFilter.size > 0 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="w-full mt-1"
+                        onClick={() => setTypeFilter(new Set())}
+                      >
+                        Limpiar
+                      </Button>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
-            <div className="md:col-span-3 text-sm text-muted-foreground md:text-right">
+            <div className="ml-auto text-sm text-muted-foreground">
               {filtered.length} de {rows.length} · Total:{" "}
               <strong className="text-foreground">{eur(totalFiltered)}</strong>
             </div>
