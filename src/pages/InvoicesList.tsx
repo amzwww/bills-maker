@@ -31,6 +31,8 @@ import {
   FileText,
   RotateCcw,
   Pencil,
+  Eye,
+  TrendingUp,
 } from "lucide-react";
 import { eur } from "@/lib/invoiceCalc";
 import { generateInvoicePdf, type Issuer } from "@/lib/pdf";
@@ -59,8 +61,11 @@ const InvoicesList = () => {
   // filtros y orden
   const [clientFilter, setClientFilter] = useState("");
   const [conceptFilter, setConceptFilter] = useState("");
+  const [numberFilter, setNumberFilter] = useState("");
   const [issuerFilter, setIssuerFilter] = useState<"all" | "JHE" | "BN">("all");
   const [paidFilter, setPaidFilter] = useState<"all" | "unpaid" | "paid">("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | "ponencia" | "mixta" | "formacion" | "gastos" | "sponsor" | "rectificativa" | "no-rectificativa">("all");
+  const [overdueDays, setOverdueDays] = useState<"all" | "20" | "30">("30");
   const [sortKey, setSortKey] = useState<SortKey>("invoice_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
@@ -85,7 +90,7 @@ const InvoicesList = () => {
     })();
   }, []);
 
-  const downloadPdf = (inv: any) => {
+  const renderPdf = (inv: any, mode: "save" | "open") => {
     const issuer = issuers[inv.issuer_id];
     if (!issuer) return toast.error("Emisor no encontrado");
     generateInvoicePdf({
@@ -112,8 +117,11 @@ const InvoicesList = () => {
       invoice_type: inv.invoice_type,
       is_rectificative: inv.is_rectificative,
       rectified_invoice_number: inv.rectified_invoice_number,
-    });
+    }, mode);
   };
+
+  const downloadPdf = (inv: any) => renderPdf(inv, "save");
+  const viewPdf = (inv: any) => renderPdf(inv, "open");
 
   const openPaid = (inv: any) => {
     setPayOpen(inv);
@@ -329,14 +337,20 @@ const InvoicesList = () => {
   const filtered = useMemo(() => {
     const cf = clientFilter.trim().toLowerCase();
     const xf = conceptFilter.trim().toLowerCase();
+    const nf = numberFilter.trim().toLowerCase();
     let list = rows.filter((r) => {
       const okClient = !cf || (r.client_name || "").toLowerCase().includes(cf);
       const okConcept = !xf || conceptsOf(r).toLowerCase().includes(xf);
+      const okNumber = !nf || (r.invoice_number || "").toLowerCase().includes(nf);
       const okIssuer = issuerFilter === "all" || r.issuer_id === issuerFilter;
       const okPaid =
         paidFilter === "all" ||
         (paidFilter === "paid" ? r.paid : !r.paid);
-      return okClient && okConcept && okIssuer && okPaid;
+      let okType = true;
+      if (typeFilter === "rectificativa") okType = !!r.is_rectificative;
+      else if (typeFilter === "no-rectificativa") okType = !r.is_rectificative;
+      else if (typeFilter !== "all") okType = !r.is_rectificative && r.invoice_type === typeFilter;
+      return okClient && okConcept && okNumber && okIssuer && okPaid && okType;
     });
     const dir = sortDir === "asc" ? 1 : -1;
     list = [...list].sort((a, b) => {
@@ -360,7 +374,7 @@ const InvoicesList = () => {
       return 0;
     });
     return list;
-  }, [rows, clientFilter, conceptFilter, issuerFilter, paidFilter, sortKey, sortDir]);
+  }, [rows, clientFilter, conceptFilter, numberFilter, issuerFilter, paidFilter, typeFilter, sortKey, sortDir]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
@@ -407,15 +421,41 @@ const InvoicesList = () => {
 
   const totalFiltered = filtered.reduce((s, r) => s + (parseFloat(r.total) || 0), 0);
 
-  // Facturas pendientes con más de 30 días
+  // Facturas pendientes con horizonte configurable
   const overdueInvoices = useMemo(() => {
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    return rows.filter((r) => {
-      if (r.paid) return false;
-      const d = new Date(r.invoice_date);
-      return d < thirtyDaysAgo;
-    });
+    const unpaid = rows.filter((r) => !r.paid);
+    if (overdueDays === "all") return unpaid;
+    const days = parseInt(overdueDays, 10);
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    return unpaid.filter((r) => new Date(r.invoice_date) < cutoff);
+  }, [rows, overdueDays]);
+
+  // Estadísticas: tiempo medio de cobro por grupo
+  const paymentStats = useMemo(() => {
+    const groups: Record<string, { label: string; types: string[] }> = {
+      ponencias: { label: "Ponencias", types: ["ponencia", "mixta"] },
+      gastos: { label: "Gastos", types: ["gastos"] },
+      formaciones: { label: "Formaciones", types: ["formacion"] },
+      sponsor: { label: "Sponsor", types: ["sponsor"] },
+    };
+    const result: { key: string; label: string; avgDays: number | null; count: number }[] = [];
+    for (const [key, g] of Object.entries(groups)) {
+      const paid = rows.filter(
+        (r) => r.paid && r.paid_at && !r.is_rectificative && g.types.includes(r.invoice_type)
+      );
+      if (paid.length === 0) {
+        result.push({ key, label: g.label, avgDays: null, count: 0 });
+        continue;
+      }
+      const totalDays = paid.reduce((s, r) => {
+        const issued = new Date(r.invoice_date).getTime();
+        const paidAt = new Date(r.paid_at).getTime();
+        return s + Math.max(0, (paidAt - issued) / 86400000);
+      }, 0);
+      result.push({ key, label: g.label, avgDays: totalDays / paid.length, count: paid.length });
+    }
+    return result;
   }, [rows]);
 
   return (
@@ -440,33 +480,87 @@ const InvoicesList = () => {
         </div>
       </header>
       <main className="container py-6 space-y-4">
-        {overdueInvoices.length > 0 && (
-          <Card className="p-4 border-amber-500/50 bg-amber-50 dark:bg-amber-950/30">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
-              <div className="text-sm flex-1 min-w-0">
+        <Card className="p-4 border-amber-500/50 bg-amber-50 dark:bg-amber-950/30">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+            <div className="text-sm flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
                 <p className="font-semibold text-amber-800 dark:text-amber-300">
-                  {overdueInvoices.length} factura{overdueInvoices.length > 1 ? "s" : ""} pendiente{overdueInvoices.length > 1 ? "s" : ""} de cobro con más de 30 días
+                  {overdueInvoices.length} factura{overdueInvoices.length === 1 ? "" : "s"} pendiente{overdueInvoices.length === 1 ? "" : "s"} de cobro
+                  {overdueDays !== "all" && ` con más de ${overdueDays} días`}
                 </p>
-                <p className="text-xl font-bold text-amber-900 dark:text-amber-200 mt-1">
-                  Total: {eur(overdueInvoices.reduce((s, r) => s + (parseFloat(r.total) || 0), 0))}
-                </p>
-                <ul className="mt-1 space-y-0.5 text-amber-700 dark:text-amber-400 max-h-48 overflow-y-auto pr-2">
-                  {overdueInvoices.map((inv) => {
-                    const days = Math.floor((Date.now() - new Date(inv.invoice_date).getTime()) / 86400000);
-                    return (
-                      <li key={inv.id} className="font-mono text-xs">
-                        {inv.invoice_number} — {inv.client_name} — {eur(parseFloat(inv.total))} — {days} días
-                      </li>
-                    );
-                  })}
-                </ul>
+                <div className="flex gap-1">
+                  {(["20", "30", "all"] as const).map((v) => (
+                    <Button
+                      key={v}
+                      type="button"
+                      size="sm"
+                      variant={overdueDays === v ? "default" : "outline"}
+                      onClick={() => setOverdueDays(v)}
+                    >
+                      {v === "all" ? "Todas" : `${v} días`}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              <p className="text-xl font-bold text-amber-900 dark:text-amber-200 mt-1">
+                Total: {eur(overdueInvoices.reduce((s, r) => s + (parseFloat(r.total) || 0), 0))}
+              </p>
+              <ul className="mt-1 space-y-0.5 text-amber-700 dark:text-amber-400 max-h-48 overflow-y-auto pr-2">
+                {overdueInvoices.map((inv) => {
+                  const days = Math.floor((Date.now() - new Date(inv.invoice_date).getTime()) / 86400000);
+                  return (
+                    <li key={inv.id} className="font-mono text-xs">
+                      {inv.invoice_number} — {inv.client_name} — {eur(parseFloat(inv.total))} — {days} días
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="h-4 w-4 text-primary" />
+            <h2 className="text-sm font-semibold">Tiempo medio de cobro (días)</h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {paymentStats.map((s) => (
+              <div key={s.key} className="rounded-md border bg-muted/30 p-3">
+                <div className="text-xs text-muted-foreground">{s.label}</div>
+                <div className="text-2xl font-bold">
+                  {s.avgDays === null ? "—" : Math.round(s.avgDays)}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {s.count} factura{s.count === 1 ? "" : "s"} cobrada{s.count === 1 ? "" : "s"}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        <Card className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+            <div>
+              <Label className="text-xs">Filtrar por nº factura</Label>
+              <div className="relative">
+                <Input
+                  value={numberFilter}
+                  onChange={(e) => setNumberFilter(e.target.value)}
+                  placeholder="Ej. JHE-2025-001"
+                />
+                {numberFilter && (
+                  <button
+                    onClick={() => setNumberFilter("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    aria-label="Limpiar"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             </div>
-          </Card>
-        )}
-        <Card className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto_auto_auto] gap-3 items-end">
             <div>
               <Label className="text-xs">Filtrar por cliente</Label>
               <div className="relative">
@@ -537,7 +631,32 @@ const InvoicesList = () => {
                 ))}
               </div>
             </div>
-            <div className="text-sm text-muted-foreground md:text-right">
+            <div className="md:col-span-3">
+              <Label className="text-xs">Tipo de factura</Label>
+              <div className="flex gap-1 flex-wrap">
+                {([
+                  ["all", "Todas"],
+                  ["no-rectificativa", "Sin rectificativas"],
+                  ["ponencia", "Ponencia"],
+                  ["mixta", "Mixta"],
+                  ["formacion", "Formación"],
+                  ["gastos", "Gastos"],
+                  ["sponsor", "Sponsor"],
+                  ["rectificativa", "Rectificativas"],
+                ] as const).map(([v, label]) => (
+                  <Button
+                    key={v}
+                    type="button"
+                    size="sm"
+                    variant={typeFilter === v ? "default" : "outline"}
+                    onClick={() => setTypeFilter(v)}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div className="md:col-span-3 text-sm text-muted-foreground md:text-right">
               {filtered.length} de {rows.length} · Total:{" "}
               <strong className="text-foreground">{eur(totalFiltered)}</strong>
             </div>
@@ -629,6 +748,9 @@ const InvoicesList = () => {
                     </td>
                     <td className="p-3 text-right">
                       <div className="flex justify-end gap-2">
+                        <Button size="sm" variant="outline" onClick={() => viewPdf(r)} title="Ver factura">
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         <Button size="sm" variant="outline" onClick={() => downloadPdf(r)}>
                           <FileDown className="h-4 w-4 mr-1" />PDF
                         </Button>
