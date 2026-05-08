@@ -51,7 +51,7 @@ function fmtDate(iso: string) {
   return `${d}/${m}/${y}`;
 }
 
-export function generateInvoicePdf(data: InvoicePdfData) {
+export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" = "save") {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
   const margin = 18;
