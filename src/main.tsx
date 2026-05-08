@@ -19,12 +19,6 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.getRegistrations().then((rs) => rs.forEach((r) => r.unregister()));
 }
 
-if (isInIframe || isPreviewHost) {
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.getRegistrations().then((rs) => rs.forEach((r) => r.unregister()));
-  }
-}
-
 // --- Auto-actualización para usuarios de navegador (sin PWA/SW) ---
 // Captura el fingerprint de los scripts del HTML inicial.
 // Cada vez que el usuario vuelve a la pestaña, re-descarga index.html
