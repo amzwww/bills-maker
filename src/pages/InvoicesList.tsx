@@ -90,7 +90,7 @@ const InvoicesList = () => {
     })();
   }, []);
 
-  const downloadPdf = (inv: any) => {
+  const renderPdf = (inv: any, mode: "save" | "open") => {
     const issuer = issuers[inv.issuer_id];
     if (!issuer) return toast.error("Emisor no encontrado");
     generateInvoicePdf({
