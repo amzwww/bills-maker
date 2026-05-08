@@ -347,9 +347,10 @@ const InvoicesList = () => {
         paidFilter === "all" ||
         (paidFilter === "paid" ? r.paid : !r.paid);
       let okType = true;
-      if (typeFilter === "rectificativa") okType = !!r.is_rectificative;
-      else if (typeFilter === "no-rectificativa") okType = !r.is_rectificative;
-      else if (typeFilter !== "all") okType = !r.is_rectificative && r.invoice_type === typeFilter;
+      if (typeFilter.size > 0) {
+        okType = (r.is_rectificative && typeFilter.has("rectificativa")) ||
+                 (!r.is_rectificative && typeFilter.has(r.invoice_type));
+      }
       return okClient && okConcept && okNumber && okIssuer && okPaid && okType;
     });
     const dir = sortDir === "asc" ? 1 : -1;
