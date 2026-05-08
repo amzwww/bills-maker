@@ -15,29 +15,15 @@ const isPreviewHost =
   window.location.hostname.includes("lovableproject.com") ||
   window.location.hostname.includes("lovable.app");
 
+if ("serviceWorker" in navigator) {
+  // Evita que cualquier service worker antiguo sirva una versión obsoleta de la app.
+  navigator.serviceWorker.getRegistrations().then((rs) => rs.forEach((r) => r.unregister()));
+}
+
 if (isInIframe || isPreviewHost) {
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.getRegistrations().then((rs) => rs.forEach((r) => r.unregister()));
   }
-} else if ("serviceWorker" in navigator && import.meta.env.PROD) {
-  import("virtual:pwa-register").then(({ registerSW }) => {
-    const updateSW = registerSW({
-      immediate: true,
-      onNeedRefresh() {
-        // Auto-actualizar SIN preguntar al usuario
-        updateSW(true);
-      },
-      onOfflineReady() {
-        console.log("App lista para uso offline");
-      },
-    });
-
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") {
-        updateSW();
-      }
-    });
-  });
 }
 
 // --- Auto-actualización para usuarios de navegador (sin PWA/SW) ---
