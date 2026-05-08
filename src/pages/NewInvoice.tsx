@@ -275,7 +275,14 @@ const NewInvoice = () => {
   }, [type, ponenciaDate]);
 
   const subtotal = useMemo(() => computeSubtotal(items), [items]);
-  const taxes = useMemo(() => computeTaxes(subtotal, { isForeign, isCanary }), [subtotal, isForeign, isCanary]);
+  const taxes = useMemo(() => {
+    const t = computeTaxes(subtotal, { isForeign, isCanary });
+    // BRIGHT no aplica retención de IRPF
+    if (clientName.trim().toUpperCase().includes("BRIGHT")) {
+      return { ...t, irpf_rate: 0, irpf_amount: 0 };
+    }
+    return t;
+  }, [subtotal, isForeign, isCanary, clientName]);
   const total = useMemo(() => round2(subtotal + taxes.vat_amount - taxes.irpf_amount), [subtotal, taxes]);
 
   const updateItem = (idx: number, patch: Partial<LineItem>) => {
