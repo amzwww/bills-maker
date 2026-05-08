@@ -484,8 +484,8 @@ const InvoicesList = () => {
         </div>
       </header>
       <main className="container py-6 space-y-4">
-        <div className="grid grid-cols-1 lg:grid-cols-20 gap-4">
-          <Card className="p-4 border-amber-500/50 bg-amber-50 dark:bg-amber-950/30 lg:col-span-13">
+        <div className="grid grid-cols-1 lg:grid-cols-[65fr_35fr] gap-4">
+          <Card className="p-4 border-amber-500/50 bg-amber-50 dark:bg-amber-950/30">
             <div className="flex items-start gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
               <div className="text-sm flex-1 min-w-0">
