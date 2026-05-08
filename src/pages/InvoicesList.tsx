@@ -745,6 +745,9 @@ const InvoicesList = () => {
                     </td>
                     <td className="p-3 text-right">
                       <div className="flex justify-end gap-2">
+                        <Button size="sm" variant="outline" onClick={() => viewPdf(r)} title="Ver factura">
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         <Button size="sm" variant="outline" onClick={() => downloadPdf(r)}>
                           <FileDown className="h-4 w-4 mr-1" />PDF
                         </Button>
