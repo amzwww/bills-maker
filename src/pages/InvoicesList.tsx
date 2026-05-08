@@ -31,6 +31,8 @@ import {
   FileText,
   RotateCcw,
   Pencil,
+  Eye,
+  TrendingUp,
 } from "lucide-react";
 import { eur } from "@/lib/invoiceCalc";
 import { generateInvoicePdf, type Issuer } from "@/lib/pdf";
