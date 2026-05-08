@@ -191,6 +191,22 @@ const NewInvoice = () => {
       }
       if (data.ponencia_date) setPonenciaDate(data.ponencia_date);
       if (data.parent_invoice_number && type === "complemento") setParentInvoice(data.parent_invoice_number);
+      // Si la captura trae "Detalles", construimos descripción "Detalles, dd/mm/yyyy"
+      const detailsText: string = (data.details || "").toString().trim();
+      if (detailsText) {
+        const cap = detailsText.charAt(0).toUpperCase() + detailsText.slice(1);
+        let descLine = cap;
+        if (data.ponencia_date) {
+          const [y, m, d] = String(data.ponencia_date).split("-");
+          descLine = `${cap}, ${d}/${m}/${y}`;
+        }
+        setItems((prev) => {
+          if (type === "complemento") {
+            return prev.map((it, i) => i === 0 ? { ...it, description: descLine, parent_header: true } : it);
+          }
+          return prev.map((it, i) => i === 0 ? { ...it, description: descLine } : it);
+        });
+      }
       if (typeof data.amount === "number" && data.amount > 0) {
         setItems((prev) => {
           if (type === "complemento") {
@@ -275,7 +291,14 @@ const NewInvoice = () => {
   }, [type, ponenciaDate]);
 
   const subtotal = useMemo(() => computeSubtotal(items), [items]);
-  const taxes = useMemo(() => computeTaxes(subtotal, { isForeign, isCanary }), [subtotal, isForeign, isCanary]);
+  const taxes = useMemo(() => {
+    const t = computeTaxes(subtotal, { isForeign, isCanary });
+    // BRIGHT no aplica retención de IRPF
+    if (clientName.trim().toUpperCase().includes("BRIGHT")) {
+      return { ...t, irpf_rate: 0, irpf_amount: 0 };
+    }
+    return t;
+  }, [subtotal, isForeign, isCanary, clientName]);
   const total = useMemo(() => round2(subtotal + taxes.vat_amount - taxes.irpf_amount), [subtotal, taxes]);
 
   const updateItem = (idx: number, patch: Partial<LineItem>) => {
