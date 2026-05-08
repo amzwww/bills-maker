@@ -484,8 +484,8 @@ const InvoicesList = () => {
         </div>
       </header>
       <main className="container py-6 space-y-4">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-          <Card className="p-4 border-amber-500/50 bg-amber-50 dark:bg-amber-950/30 lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-[65fr_35fr] gap-4">
+          <Card className="p-4 border-amber-500/50 bg-amber-50 dark:bg-amber-950/30">
             <div className="flex items-start gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
               <div className="text-sm flex-1 min-w-0">
@@ -525,7 +525,7 @@ const InvoicesList = () => {
             </div>
           </Card>
 
-          <Card className="p-4 lg:col-span-3">
+          <Card className="p-4">
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="h-4 w-4 text-primary" />
               <h2 className="text-sm font-semibold">Tiempo medio de cobro (días)</h2>
