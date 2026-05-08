@@ -628,7 +628,32 @@ const InvoicesList = () => {
                 ))}
               </div>
             </div>
-            <div className="text-sm text-muted-foreground md:text-right">
+            <div className="md:col-span-3">
+              <Label className="text-xs">Tipo de factura</Label>
+              <div className="flex gap-1 flex-wrap">
+                {([
+                  ["all", "Todas"],
+                  ["no-rectificativa", "Sin rectificativas"],
+                  ["ponencia", "Ponencia"],
+                  ["mixta", "Mixta"],
+                  ["formacion", "Formación"],
+                  ["gastos", "Gastos"],
+                  ["sponsor", "Sponsor"],
+                  ["rectificativa", "Rectificativas"],
+                ] as const).map(([v, label]) => (
+                  <Button
+                    key={v}
+                    type="button"
+                    size="sm"
+                    variant={typeFilter === v ? "default" : "outline"}
+                    onClick={() => setTypeFilter(v)}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div className="md:col-span-3 text-sm text-muted-foreground md:text-right">
               {filtered.length} de {rows.length} · Total:{" "}
               <strong className="text-foreground">{eur(totalFiltered)}</strong>
             </div>
