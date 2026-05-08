@@ -371,7 +371,7 @@ const InvoicesList = () => {
       return 0;
     });
     return list;
-  }, [rows, clientFilter, conceptFilter, issuerFilter, paidFilter, sortKey, sortDir]);
+  }, [rows, clientFilter, conceptFilter, numberFilter, issuerFilter, paidFilter, typeFilter, sortKey, sortDir]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
