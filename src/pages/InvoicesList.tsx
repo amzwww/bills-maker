@@ -117,8 +117,11 @@ const InvoicesList = () => {
       invoice_type: inv.invoice_type,
       is_rectificative: inv.is_rectificative,
       rectified_invoice_number: inv.rectified_invoice_number,
-    });
+    }, mode);
   };
+
+  const downloadPdf = (inv: any) => renderPdf(inv, "save");
+  const viewPdf = (inv: any) => renderPdf(inv, "open");
 
   const openPaid = (inv: any) => {
     setPayOpen(inv);
