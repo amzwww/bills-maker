@@ -334,14 +334,20 @@ const InvoicesList = () => {
   const filtered = useMemo(() => {
     const cf = clientFilter.trim().toLowerCase();
     const xf = conceptFilter.trim().toLowerCase();
+    const nf = numberFilter.trim().toLowerCase();
     let list = rows.filter((r) => {
       const okClient = !cf || (r.client_name || "").toLowerCase().includes(cf);
       const okConcept = !xf || conceptsOf(r).toLowerCase().includes(xf);
+      const okNumber = !nf || (r.invoice_number || "").toLowerCase().includes(nf);
       const okIssuer = issuerFilter === "all" || r.issuer_id === issuerFilter;
       const okPaid =
         paidFilter === "all" ||
         (paidFilter === "paid" ? r.paid : !r.paid);
-      return okClient && okConcept && okIssuer && okPaid;
+      let okType = true;
+      if (typeFilter === "rectificativa") okType = !!r.is_rectificative;
+      else if (typeFilter === "no-rectificativa") okType = !r.is_rectificative;
+      else if (typeFilter !== "all") okType = !r.is_rectificative && r.invoice_type === typeFilter;
+      return okClient && okConcept && okNumber && okIssuer && okPaid && okType;
     });
     const dir = sortDir === "asc" ? 1 : -1;
     list = [...list].sort((a, b) => {
