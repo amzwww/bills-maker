@@ -538,7 +538,26 @@ const InvoicesList = () => {
         </Card>
 
         <Card className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto_auto_auto] gap-3 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+            <div>
+              <Label className="text-xs">Filtrar por nº factura</Label>
+              <div className="relative">
+                <Input
+                  value={numberFilter}
+                  onChange={(e) => setNumberFilter(e.target.value)}
+                  placeholder="Ej. JHE-2025-001"
+                />
+                {numberFilter && (
+                  <button
+                    onClick={() => setNumberFilter("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    aria-label="Limpiar"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
             <div>
               <Label className="text-xs">Filtrar por cliente</Label>
               <div className="relative">
