@@ -298,7 +298,7 @@ const NewInvoice = () => {
       return { ...t, irpf_rate: 0, irpf_amount: 0 };
     }
     return t;
-  }, [subtotal, isForeign, isCanary, clientName]);
+  }, [subtotal, isForeign, isCanary, issuerId]);
   const total = useMemo(() => round2(subtotal + taxes.vat_amount - taxes.irpf_amount), [subtotal, taxes]);
 
   const updateItem = (idx: number, patch: Partial<LineItem>) => {
