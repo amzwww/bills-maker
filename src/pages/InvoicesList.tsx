@@ -418,15 +418,41 @@ const InvoicesList = () => {
 
   const totalFiltered = filtered.reduce((s, r) => s + (parseFloat(r.total) || 0), 0);
 
-  // Facturas pendientes con más de 30 días
+  // Facturas pendientes con horizonte configurable
   const overdueInvoices = useMemo(() => {
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    return rows.filter((r) => {
-      if (r.paid) return false;
-      const d = new Date(r.invoice_date);
-      return d < thirtyDaysAgo;
-    });
+    const unpaid = rows.filter((r) => !r.paid);
+    if (overdueDays === "all") return unpaid;
+    const days = parseInt(overdueDays, 10);
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    return unpaid.filter((r) => new Date(r.invoice_date) < cutoff);
+  }, [rows, overdueDays]);
+
+  // Estadísticas: tiempo medio de cobro por grupo
+  const paymentStats = useMemo(() => {
+    const groups: Record<string, { label: string; types: string[] }> = {
+      ponencias: { label: "Ponencias", types: ["ponencia", "mixta"] },
+      gastos: { label: "Gastos", types: ["gastos"] },
+      formaciones: { label: "Formaciones", types: ["formacion"] },
+      sponsor: { label: "Sponsor", types: ["sponsor"] },
+    };
+    const result: { key: string; label: string; avgDays: number | null; count: number }[] = [];
+    for (const [key, g] of Object.entries(groups)) {
+      const paid = rows.filter(
+        (r) => r.paid && r.paid_at && !r.is_rectificative && g.types.includes(r.invoice_type)
+      );
+      if (paid.length === 0) {
+        result.push({ key, label: g.label, avgDays: null, count: 0 });
+        continue;
+      }
+      const totalDays = paid.reduce((s, r) => {
+        const issued = new Date(r.invoice_date).getTime();
+        const paidAt = new Date(r.paid_at).getTime();
+        return s + Math.max(0, (paidAt - issued) / 86400000);
+      }, 0);
+      result.push({ key, label: g.label, avgDays: totalDays / paid.length, count: paid.length });
+    }
+    return result;
   }, [rows]);
 
   return (
