@@ -191,6 +191,22 @@ const NewInvoice = () => {
       }
       if (data.ponencia_date) setPonenciaDate(data.ponencia_date);
       if (data.parent_invoice_number && type === "complemento") setParentInvoice(data.parent_invoice_number);
+      // Si la captura trae "Detalles", construimos descripción "Detalles, dd/mm/yyyy"
+      const detailsText: string = (data.details || "").toString().trim();
+      if (detailsText) {
+        const cap = detailsText.charAt(0).toUpperCase() + detailsText.slice(1);
+        let descLine = cap;
+        if (data.ponencia_date) {
+          const [y, m, d] = String(data.ponencia_date).split("-");
+          descLine = `${cap}, ${d}/${m}/${y}`;
+        }
+        setItems((prev) => {
+          if (type === "complemento") {
+            return prev.map((it, i) => i === 0 ? { ...it, description: descLine, parent_header: true } : it);
+          }
+          return prev.map((it, i) => i === 0 ? { ...it, description: descLine } : it);
+        });
+      }
       if (typeof data.amount === "number" && data.amount > 0) {
         setItems((prev) => {
           if (type === "complemento") {
