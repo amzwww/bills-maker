@@ -170,6 +170,26 @@ export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" =
     }
   }
 
+  // Referencia del cliente (SEGÚN SU PEDIDO) - debajo de la dirección
+  if (data.their_order) {
+    y += 2;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    const label = "SEGÚN SU Nº DE PEDIDO:";
+    doc.text(label, margin, y);
+    doc.setFont("helvetica", "normal");
+    const labelW = doc.getTextWidth(label);
+    const valueX = margin + labelW + 3;
+    const maxValueW = pageW - margin - valueX;
+    const orderLines = doc.splitTextToSize(data.their_order, maxValueW) as string[];
+    doc.text(orderLines[0], valueX, y);
+    y += 5;
+    for (let i = 1; i < orderLines.length; i++) {
+      doc.text(orderLines[i], valueX, y);
+      y += 5;
+    }
+  }
+
   y += 4;
 
   // Tabla líneas
