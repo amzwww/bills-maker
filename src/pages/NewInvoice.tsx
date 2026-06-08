@@ -14,7 +14,7 @@ import { ArrowLeft, Plus, Trash2, FileDown, Camera, Loader2, Search } from "luci
 import { useRef } from "react";
 import { toast } from "sonner";
 import { classifyInvoice, computeSubtotal, computeTaxes, eur, round2, type LineItem } from "@/lib/invoiceCalc";
-import { COMPLEMENT_INDENTED_LINE, PRE_PAYMENT_NOTES, POST_PAYMENT_NOTE, ponenciaDescription, type PrePaymentKey } from "@/lib/invoiceTexts";
+import { COMPLEMENT_INDENTED_LINE, EXPENSES_INDENTED_LINE, PRE_PAYMENT_NOTES, POST_PAYMENT_NOTE, ponenciaDescription, type PrePaymentKey } from "@/lib/invoiceTexts";
 import { generateInvoicePdf, type Issuer } from "@/lib/pdf";
 
 type PastClient = {
