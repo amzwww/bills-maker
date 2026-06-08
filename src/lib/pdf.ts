@@ -101,19 +101,20 @@ export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" =
   // Fecha y número
   y = margin + 18;
   doc.setFontSize(10);
+  const labelOffset = data.is_quote ? 65 : 50;
   doc.setFont("helvetica", "bold");
-  doc.text("FECHA:", pageW - margin - 50, y);
+  doc.text("FECHA:", pageW - margin - labelOffset, y);
   doc.setFont("helvetica", "normal");
   doc.text(fmtDate(data.invoice_date), pageW - margin, y, { align: "right" });
   y += 5;
   doc.setFont("helvetica", "bold");
-  doc.text(data.is_quote ? "PRESUPUESTO Nº:" : "FACTURA Nº:", pageW - margin - 50, y);
+  doc.text(data.is_quote ? "PRESUPUESTO Nº:" : "FACTURA Nº:", pageW - margin - labelOffset, y);
   doc.setFont("helvetica", "normal");
   doc.text(data.invoice_number, pageW - margin, y, { align: "right" });
   y += 5;
   if (data.is_rectificative && data.rectified_invoice_number) {
     doc.setFont("helvetica", "bold");
-    doc.text("RECTIFICA A:", pageW - margin - 50, y);
+    doc.text("RECTIFICA A:", pageW - margin - labelOffset, y);
     doc.setFont("helvetica", "normal");
     doc.text(data.rectified_invoice_number, pageW - margin, y, { align: "right" });
     y += 5;
