@@ -16,6 +16,8 @@ import Settings from "./pages/Settings.tsx";
 import Auth from "./pages/Auth.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import ImportLog from "./pages/ImportLog.tsx";
+import QuotesList from "./pages/QuotesList.tsx";
+import NewQuote from "./pages/NewQuote.tsx";
 
 const queryClient = new QueryClient();
 
