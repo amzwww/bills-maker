@@ -26,6 +26,9 @@ export const POST_PAYMENT_NOTE =
 export const COMPLEMENT_INDENTED_LINE =
   "Gastos de desplazamiento y logística para la asistencia de Jon al evento";
 
+export const EXPENSES_INDENTED_LINE =
+  "Gastos de desplazamiento de Jon para asistir al evento";
+
 export function ponenciaDescription(dateISO: string): string {
   // dateISO yyyy-mm-dd
   const [y, m, d] = dateISO.split("-");
