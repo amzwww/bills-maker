@@ -107,7 +107,7 @@ export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" =
   doc.text(fmtDate(data.invoice_date), pageW - margin, y, { align: "right" });
   y += 5;
   doc.setFont("helvetica", "bold");
-  doc.text("FACTURA Nº:", pageW - margin - 50, y);
+  doc.text(data.is_quote ? "PRESUPUESTO Nº:" : "FACTURA Nº:", pageW - margin - 50, y);
   doc.setFont("helvetica", "normal");
   doc.text(data.invoice_number, pageW - margin, y, { align: "right" });
   y += 5;
