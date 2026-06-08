@@ -121,7 +121,7 @@ export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" =
   }
   if (data.our_reference) {
     doc.setFont("helvetica", "bold");
-    doc.text("NUESTRA REFERENCIA:", pageW - margin - 50, y);
+    doc.text("NUESTRA REFERENCIA:", pageW - margin - labelOffset, y);
     doc.setFont("helvetica", "normal");
     doc.text(data.our_reference, pageW - margin, y, { align: "right" });
     y += 5;
