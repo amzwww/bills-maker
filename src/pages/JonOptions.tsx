@@ -18,7 +18,7 @@ const JonOptions = () => {
         </div>
       </header>
       <main className="container py-12">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 max-w-5xl">
+        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-5 max-w-6xl">
           <Link to="/nueva?issuer=JHE&type=ponencia">
             <Card className="p-6 hover:border-primary hover:shadow-lg transition-all cursor-pointer h-full">
               <Mic className="h-8 w-8 text-primary mb-3" />
