@@ -465,10 +465,19 @@ const NewInvoice = () => {
           total,
           pre_payment_note: prePaymentText,
           post_payment_note: computedType === "sponsor" ? null : POST_PAYMENT_NOTE,
+          ...(fromQuoteId ? { source_quote_number: null as any } : {}),
         };
 
-        const { error } = await supabase.from("invoices").insert(payload);
+        const { error } = await supabase.from("invoices").insert(payload as any);
         if (error) throw error;
+
+        // Si viene de un presupuesto, lo marcamos como convertido
+        if (fromQuoteId) {
+          const { data: q } = await supabase.from("quotes" as any).select("quote_number").eq("id", fromQuoteId).single();
+          const qNum = (q as any)?.quote_number || null;
+          await supabase.from("invoices").update({ source_quote_number: qNum } as any).eq("invoice_number", invoiceNumber);
+          await supabase.from("quotes" as any).update({ converted_invoice_number: invoiceNumber, status: "converted" }).eq("id", fromQuoteId);
+        }
         toast.success(`Factura ${invoiceNumber} creada`);
       }
 
