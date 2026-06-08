@@ -36,6 +36,7 @@ const NewInvoice = () => {
   const issuerId = (params.get("issuer") || "JHE") as "JHE" | "BN";
   const initialType = (params.get("type") || "ponencia") as InvoiceType;
   const editId = params.get("edit"); // uuid of invoice being edited
+  const fromQuoteId = params.get("fromQuote"); // uuid of quote to convert
   const [type, setType] = useState<InvoiceType>(initialType);
 
   const [issuer, setIssuer] = useState<Issuer | null>(null);
