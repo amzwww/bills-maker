@@ -28,6 +28,9 @@ const Index = () => {
               <Link to="/facturas"><List className="h-4 w-4 mr-1 sm:mr-2" /><span className="hidden xs:inline">Facturas</span><span className="xs:hidden">Fact.</span></Link>
             </Button>
             <Button asChild variant="outline" size="sm">
+              <Link to="/presupuestos"><FileSignature className="h-4 w-4 mr-1 sm:mr-2" />Presupuestos</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
               <Link to="/clientes"><Users className="h-4 w-4 mr-1 sm:mr-2" />Clientes</Link>
             </Button>
             {isAdmin && (
