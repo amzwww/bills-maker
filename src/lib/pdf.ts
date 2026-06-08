@@ -80,15 +80,20 @@ export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" =
     y += 4;
   }
 
-  // Título FACTURA / FACTURA RECTIFICATIVA
-  const titleText = data.is_rectificative ? "FACTURA\nRECTIFICATIVA" : "FACTURA";
+  // Título FACTURA / FACTURA RECTIFICATIVA / PRESUPUESTO
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(data.is_rectificative ? 20 : 28);
-  doc.setTextColor(data.is_rectificative ? 180 : 30, data.is_rectificative ? 30 : 64, data.is_rectificative ? 30 : 175);
-  if (data.is_rectificative) {
+  if (data.is_quote) {
+    doc.setFontSize(28);
+    doc.setTextColor(30, 64, 175);
+    doc.text("PRESUPUESTO", pageW - margin, margin + 6, { align: "right" });
+  } else if (data.is_rectificative) {
+    doc.setFontSize(20);
+    doc.setTextColor(180, 30, 30);
     doc.text("FACTURA", pageW - margin, margin + 2, { align: "right" });
     doc.text("RECTIFICATIVA", pageW - margin, margin + 9, { align: "right" });
   } else {
+    doc.setFontSize(28);
+    doc.setTextColor(30, 64, 175);
     doc.text("FACTURA", pageW - margin, margin + 6, { align: "right" });
   }
   doc.setTextColor(0, 0, 0);
