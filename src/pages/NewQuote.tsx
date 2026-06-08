@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ArrowLeft, Plus, Trash2, FileDown, Camera, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { classifyInvoice, computeSubtotal, computeTaxes, eur, round2, type LineItem } from "@/lib/invoiceCalc";
-import { COMPLEMENT_INDENTED_LINE, ponenciaDescription } from "@/lib/invoiceTexts";
+import { COMPLEMENT_INDENTED_LINE, EXPENSES_INDENTED_LINE, ponenciaDescription } from "@/lib/invoiceTexts";
 import { generateInvoicePdf, type Issuer } from "@/lib/pdf";
 
 type PastClient = {
@@ -165,6 +165,23 @@ const NewQuote = () => {
       if (data.ponencia_date) setPonenciaDate(data.ponencia_date);
       if (typeof data.amount === "number" && data.amount > 0) {
         setItems((prev) => prev.map((it, i) => i === 0 ? { ...it, unit_price: data.amount, quantity: 1, total: data.amount } : it));
+      }
+      if (typeof data.expenses === "number" && data.expenses > 0) {
+        setItems((prev) => {
+          const expenseLine: LineItem = {
+            description: EXPENSES_INDENTED_LINE,
+            unit_price: data.expenses,
+            quantity: 1,
+            total: data.expenses,
+            indented: true,
+          };
+          const existingIdx = prev.findIndex((it) => it.description === EXPENSES_INDENTED_LINE);
+          if (existingIdx >= 0) {
+            return prev.map((it, i) => i === existingIdx ? { ...it, ...expenseLine } : it);
+          }
+          const filtered = prev.filter((it, i) => i === 0 || (it.description || "").trim() !== "");
+          return [...filtered, expenseLine];
+        });
       }
       toast.success("Datos extraídos");
     } catch (e: any) {

@@ -37,7 +37,8 @@ Deno.serve(async (req) => {
 - is_canary: true si la dirección es en Canarias (Las Palmas, Santa Cruz de Tenerife, CP 35xxx o 38xxx)
 - ponencia_date: fecha del evento/ponencia/formación en formato YYYY-MM-DD si aparece (ej de "29/06/2026" -> "2026-06-29"), si no ""
 - details: si en la captura aparece un apartado "Detalles" (o similar) con texto descriptivo del servicio (ej: "formación presencial", "ponencia online"), devuelve ese texto tal cual; si no aparece, ""
-- amount: importe en euros como número (sin símbolo, punto decimal). Ej "9.000,00 €" -> 9000, "1.234,56" -> 1234.56. Si no aparece, null.
+- amount: importe principal (ponencia / formación / sponsor / "Pago") en euros como número (sin símbolo, punto decimal). Ej "9.000,00 €" -> 9000, "1.234,56" -> 1234.56. Si no aparece, null.
+- expenses: importe SEPARADO de gastos de desplazamiento/logística (campos tipo "Pago Gastos", "Gastos", "Gastos desplazamiento", "Logística") en euros como número. Solo si aparece como concepto independiente al importe principal; si no, null.
 - parent_invoice_number: si la captura referencia una factura existente (ej "JHE-2026-079"), devuélvela; si no, ""
 No inventes datos. Solo JSON, sin markdown.`;
 

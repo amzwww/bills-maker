@@ -14,7 +14,7 @@ import { ArrowLeft, Plus, Trash2, FileDown, Camera, Loader2, Search } from "luci
 import { useRef } from "react";
 import { toast } from "sonner";
 import { classifyInvoice, computeSubtotal, computeTaxes, eur, round2, type LineItem } from "@/lib/invoiceCalc";
-import { COMPLEMENT_INDENTED_LINE, PRE_PAYMENT_NOTES, POST_PAYMENT_NOTE, ponenciaDescription, type PrePaymentKey } from "@/lib/invoiceTexts";
+import { COMPLEMENT_INDENTED_LINE, EXPENSES_INDENTED_LINE, PRE_PAYMENT_NOTES, POST_PAYMENT_NOTE, ponenciaDescription, type PrePaymentKey } from "@/lib/invoiceTexts";
 import { generateInvoicePdf, type Issuer } from "@/lib/pdf";
 
 type PastClient = {
@@ -247,6 +247,24 @@ const NewInvoice = () => {
           }
           // ponencia / sponsor: primera línea
           return prev.map((it, i) => i === 0 ? { ...it, unit_price: data.amount, quantity: 1, total: data.amount } : it);
+        });
+      }
+      if (typeof data.expenses === "number" && data.expenses > 0 && type !== "complemento") {
+        setItems((prev) => {
+          const expenseLine = {
+            description: EXPENSES_INDENTED_LINE,
+            unit_price: data.expenses,
+            quantity: 1,
+            total: data.expenses,
+            indented: true,
+          };
+          const existingIdx = prev.findIndex((it) => it.description === EXPENSES_INDENTED_LINE);
+          if (existingIdx >= 0) {
+            return prev.map((it, i) => i === existingIdx ? { ...it, ...expenseLine } : it);
+          }
+          // Replace empty trailing line if any, else append
+          const filtered = prev.filter((it, i) => i === 0 || (it.description || "").trim() !== "");
+          return [...filtered, expenseLine];
         });
       }
       toast.success("Datos extraídos de la captura");
