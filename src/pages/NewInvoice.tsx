@@ -141,6 +141,35 @@ const NewInvoice = () => {
     })();
   }, [editId, editLoaded]);
 
+  // Prefill from quote
+  const [quotePrefilled, setQuotePrefilled] = useState(false);
+  useEffect(() => {
+    if (!fromQuoteId || quotePrefilled || editId) return;
+    (async () => {
+      const { data } = await supabase.from("quotes" as any).select("*").eq("id", fromQuoteId).single();
+      if (!data) return;
+      const q = data as any;
+      setQuotePrefilled(true);
+      if (q.invoice_type) setType(q.invoice_type as InvoiceType);
+      setOurReference(q.our_reference || "");
+      setTheirOrder(q.their_order || "");
+      setClientName(q.client_name);
+      setClientTaxId(q.client_tax_id || "");
+      setClientAddr1(q.client_address_line1 || "");
+      if (q.client_address_line2) { setClientAddr2(q.client_address_line2); setAddr2Enabled(true); }
+      setClientCityZip(q.client_city_zip || "");
+      setClientCountry(q.client_country || "");
+      setIsForeign(q.client_is_foreign);
+      setIsCanary(q.client_is_canary);
+      setIsUniversity(!!q.is_university);
+      setUniAccountingOffice(q.university_accounting_office || "");
+      setUniManagingBody(q.university_managing_body || "");
+      setUniProcessingUnit(q.university_processing_unit || "");
+      setItems((q.line_items as any[]) || [{ description: "", unit_price: 0, quantity: 1, total: 0 }]);
+      toast.success(`Presupuesto ${q.quote_number} cargado`);
+    })();
+  }, [fromQuoteId, quotePrefilled, editId]);
+
   const selectPastClient = useCallback((c: PastClient) => {
     setClientName(c.client_name);
     setClientTaxId(c.client_tax_id || "");
