@@ -150,7 +150,9 @@ const NewInvoice = () => {
       if (!data) return;
       const q = data as any;
       setQuotePrefilled(true);
-      if (q.invoice_type) setType(q.invoice_type as InvoiceType);
+      // "mixta" no es seleccionable en el dropdown; lo mapeamos a "ponencia"
+      const mappedType = q.invoice_type === "mixta" ? "ponencia" : q.invoice_type;
+      if (mappedType) setType(mappedType as InvoiceType);
       setOurReference(q.our_reference || "");
       setTheirOrder(q.their_order || "");
       setClientName(q.client_name);
