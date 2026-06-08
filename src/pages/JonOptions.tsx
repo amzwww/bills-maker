@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Mic, PlusCircle, Trophy, GraduationCap } from "lucide-react";
+import { ArrowLeft, Mic, PlusCircle, Trophy, GraduationCap, FileSignature } from "lucide-react";
 
 const JonOptions = () => {
   return (
@@ -18,7 +18,7 @@ const JonOptions = () => {
         </div>
       </header>
       <main className="container py-12">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 max-w-5xl">
+        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-5 max-w-6xl">
           <Link to="/nueva?issuer=JHE&type=ponencia">
             <Card className="p-6 hover:border-primary hover:shadow-lg transition-all cursor-pointer h-full">
               <Mic className="h-8 w-8 text-primary mb-3" />
@@ -45,6 +45,13 @@ const JonOptions = () => {
               <GraduationCap className="h-8 w-8 text-primary mb-3" />
               <h3 className="font-bold text-lg mb-1">D) Formación</h3>
               <p className="text-sm text-muted-foreground">Factura por servicios de formación.</p>
+            </Card>
+          </Link>
+          <Link to="/presupuestos/nuevo?type=ponencia">
+            <Card className="p-6 hover:border-primary hover:shadow-lg transition-all cursor-pointer h-full">
+              <FileSignature className="h-8 w-8 text-primary mb-3" />
+              <h3 className="font-bold text-lg mb-1">E) Presupuesto</h3>
+              <p className="text-sm text-muted-foreground">Numeración <code>JHE-PF-AAAA-000</code>. Mismo formato que factura.</p>
             </Card>
           </Link>
         </div>

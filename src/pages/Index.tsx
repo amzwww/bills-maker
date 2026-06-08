@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Settings, List, Users, LogOut } from "lucide-react";
+import { FileText, Settings, List, Users, LogOut, FileSignature } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/bills-logo.png";
 
@@ -26,6 +26,9 @@ const Index = () => {
             </Badge>
             <Button asChild variant="outline" size="sm">
               <Link to="/facturas"><List className="h-4 w-4 mr-1 sm:mr-2" /><span className="hidden xs:inline">Facturas</span><span className="xs:hidden">Fact.</span></Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/presupuestos"><FileSignature className="h-4 w-4 mr-1 sm:mr-2" />Presupuestos</Link>
             </Button>
             <Button asChild variant="outline" size="sm">
               <Link to="/clientes"><Users className="h-4 w-4 mr-1 sm:mr-2" />Clientes</Link>

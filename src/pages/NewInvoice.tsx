@@ -36,6 +36,7 @@ const NewInvoice = () => {
   const issuerId = (params.get("issuer") || "JHE") as "JHE" | "BN";
   const initialType = (params.get("type") || "ponencia") as InvoiceType;
   const editId = params.get("edit"); // uuid of invoice being edited
+  const fromQuoteId = params.get("fromQuote"); // uuid of quote to convert
   const [type, setType] = useState<InvoiceType>(initialType);
 
   const [issuer, setIssuer] = useState<Issuer | null>(null);
@@ -139,6 +140,35 @@ const NewInvoice = () => {
       }
     })();
   }, [editId, editLoaded]);
+
+  // Prefill from quote
+  const [quotePrefilled, setQuotePrefilled] = useState(false);
+  useEffect(() => {
+    if (!fromQuoteId || quotePrefilled || editId) return;
+    (async () => {
+      const { data } = await supabase.from("quotes" as any).select("*").eq("id", fromQuoteId).single();
+      if (!data) return;
+      const q = data as any;
+      setQuotePrefilled(true);
+      if (q.invoice_type) setType(q.invoice_type as InvoiceType);
+      setOurReference(q.our_reference || "");
+      setTheirOrder(q.their_order || "");
+      setClientName(q.client_name);
+      setClientTaxId(q.client_tax_id || "");
+      setClientAddr1(q.client_address_line1 || "");
+      if (q.client_address_line2) { setClientAddr2(q.client_address_line2); setAddr2Enabled(true); }
+      setClientCityZip(q.client_city_zip || "");
+      setClientCountry(q.client_country || "");
+      setIsForeign(q.client_is_foreign);
+      setIsCanary(q.client_is_canary);
+      setIsUniversity(!!q.is_university);
+      setUniAccountingOffice(q.university_accounting_office || "");
+      setUniManagingBody(q.university_managing_body || "");
+      setUniProcessingUnit(q.university_processing_unit || "");
+      setItems((q.line_items as any[]) || [{ description: "", unit_price: 0, quantity: 1, total: 0 }]);
+      toast.success(`Presupuesto ${q.quote_number} cargado`);
+    })();
+  }, [fromQuoteId, quotePrefilled, editId]);
 
   const selectPastClient = useCallback((c: PastClient) => {
     setClientName(c.client_name);
@@ -435,10 +465,19 @@ const NewInvoice = () => {
           total,
           pre_payment_note: prePaymentText,
           post_payment_note: computedType === "sponsor" ? null : POST_PAYMENT_NOTE,
+          ...(fromQuoteId ? { source_quote_number: null as any } : {}),
         };
 
-        const { error } = await supabase.from("invoices").insert(payload);
+        const { error } = await supabase.from("invoices").insert(payload as any);
         if (error) throw error;
+
+        // Si viene de un presupuesto, lo marcamos como convertido
+        if (fromQuoteId) {
+          const { data: q } = await supabase.from("quotes" as any).select("quote_number").eq("id", fromQuoteId).single();
+          const qNum = (q as any)?.quote_number || null;
+          await supabase.from("invoices").update({ source_quote_number: qNum } as any).eq("invoice_number", invoiceNumber);
+          await supabase.from("quotes" as any).update({ converted_invoice_number: invoiceNumber, status: "converted" }).eq("id", fromQuoteId);
+        }
         toast.success(`Factura ${invoiceNumber} creada`);
       }
 

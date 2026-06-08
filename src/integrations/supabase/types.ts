@@ -91,6 +91,7 @@ export type Database = {
           seq: number
           source_pdf_name: string | null
           source_pdf_url: string | null
+          source_quote_number: string | null
           status: string
           subtotal: number
           their_order: string | null
@@ -136,6 +137,7 @@ export type Database = {
           seq: number
           source_pdf_name?: string | null
           source_pdf_url?: string | null
+          source_quote_number?: string | null
           status?: string
           subtotal?: number
           their_order?: string | null
@@ -181,6 +183,7 @@ export type Database = {
           seq?: number
           source_pdf_name?: string | null
           source_pdf_url?: string | null
+          source_quote_number?: string | null
           status?: string
           subtotal?: number
           their_order?: string | null
@@ -252,6 +255,120 @@ export type Database = {
         }
         Relationships: []
       }
+      quotes: {
+        Row: {
+          client_address_line1: string | null
+          client_address_line2: string | null
+          client_city_zip: string | null
+          client_country: string | null
+          client_is_canary: boolean
+          client_is_foreign: boolean
+          client_name: string
+          client_tax_id: string | null
+          converted_invoice_number: string | null
+          created_at: string
+          id: string
+          invoice_type: string
+          irpf_amount: number
+          irpf_rate: number
+          is_university: boolean
+          issuer_id: string
+          line_items: Json
+          notes: string | null
+          our_reference: string | null
+          pre_payment_note: string | null
+          quote_date: string
+          quote_number: string
+          seq: number
+          status: string
+          subtotal: number
+          their_order: string | null
+          total: number
+          university_accounting_office: string | null
+          university_managing_body: string | null
+          university_processing_unit: string | null
+          updated_at: string
+          vat_amount: number
+          vat_label: string
+          vat_rate: number
+          year: number
+        }
+        Insert: {
+          client_address_line1?: string | null
+          client_address_line2?: string | null
+          client_city_zip?: string | null
+          client_country?: string | null
+          client_is_canary?: boolean
+          client_is_foreign?: boolean
+          client_name: string
+          client_tax_id?: string | null
+          converted_invoice_number?: string | null
+          created_at?: string
+          id?: string
+          invoice_type?: string
+          irpf_amount?: number
+          irpf_rate?: number
+          is_university?: boolean
+          issuer_id: string
+          line_items?: Json
+          notes?: string | null
+          our_reference?: string | null
+          pre_payment_note?: string | null
+          quote_date: string
+          quote_number: string
+          seq: number
+          status?: string
+          subtotal?: number
+          their_order?: string | null
+          total?: number
+          university_accounting_office?: string | null
+          university_managing_body?: string | null
+          university_processing_unit?: string | null
+          updated_at?: string
+          vat_amount?: number
+          vat_label?: string
+          vat_rate?: number
+          year: number
+        }
+        Update: {
+          client_address_line1?: string | null
+          client_address_line2?: string | null
+          client_city_zip?: string | null
+          client_country?: string | null
+          client_is_canary?: boolean
+          client_is_foreign?: boolean
+          client_name?: string
+          client_tax_id?: string | null
+          converted_invoice_number?: string | null
+          created_at?: string
+          id?: string
+          invoice_type?: string
+          irpf_amount?: number
+          irpf_rate?: number
+          is_university?: boolean
+          issuer_id?: string
+          line_items?: Json
+          notes?: string | null
+          our_reference?: string | null
+          pre_payment_note?: string | null
+          quote_date?: string
+          quote_number?: string
+          seq?: number
+          status?: string
+          subtotal?: number
+          their_order?: string | null
+          total?: number
+          university_accounting_office?: string | null
+          university_managing_body?: string | null
+          university_processing_unit?: string | null
+          updated_at?: string
+          vat_amount?: number
+          vat_label?: string
+          vat_rate?: number
+          year?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -292,6 +409,10 @@ export type Database = {
         Returns: boolean
       }
       next_invoice_seq: {
+        Args: { _issuer_id: string; _year: number }
+        Returns: number
+      }
+      next_quote_seq: {
         Args: { _issuer_id: string; _year: number }
         Returns: number
       }

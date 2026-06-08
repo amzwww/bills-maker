@@ -44,6 +44,7 @@ export type InvoicePdfData = {
   university_accounting_office?: string | null;
   university_managing_body?: string | null;
   university_processing_unit?: string | null;
+  is_quote?: boolean;
 };
 
 function fmtDate(iso: string) {
@@ -79,15 +80,20 @@ export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" =
     y += 4;
   }
 
-  // Título FACTURA / FACTURA RECTIFICATIVA
-  const titleText = data.is_rectificative ? "FACTURA\nRECTIFICATIVA" : "FACTURA";
+  // Título FACTURA / FACTURA RECTIFICATIVA / PRESUPUESTO
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(data.is_rectificative ? 20 : 28);
-  doc.setTextColor(data.is_rectificative ? 180 : 30, data.is_rectificative ? 30 : 64, data.is_rectificative ? 30 : 175);
-  if (data.is_rectificative) {
+  if (data.is_quote) {
+    doc.setFontSize(28);
+    doc.setTextColor(30, 64, 175);
+    doc.text("PRESUPUESTO", pageW - margin, margin + 6, { align: "right" });
+  } else if (data.is_rectificative) {
+    doc.setFontSize(20);
+    doc.setTextColor(180, 30, 30);
     doc.text("FACTURA", pageW - margin, margin + 2, { align: "right" });
     doc.text("RECTIFICATIVA", pageW - margin, margin + 9, { align: "right" });
   } else {
+    doc.setFontSize(28);
+    doc.setTextColor(30, 64, 175);
     doc.text("FACTURA", pageW - margin, margin + 6, { align: "right" });
   }
   doc.setTextColor(0, 0, 0);
@@ -101,7 +107,7 @@ export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" =
   doc.text(fmtDate(data.invoice_date), pageW - margin, y, { align: "right" });
   y += 5;
   doc.setFont("helvetica", "bold");
-  doc.text("FACTURA Nº:", pageW - margin - 50, y);
+  doc.text(data.is_quote ? "PRESUPUESTO Nº:" : "FACTURA Nº:", pageW - margin - 50, y);
   doc.setFont("helvetica", "normal");
   doc.text(data.invoice_number, pageW - margin, y, { align: "right" });
   y += 5;
@@ -247,7 +253,7 @@ export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" =
   doc.setFont("helvetica", "bold");
   doc.setFillColor(230, 235, 245);
   doc.rect(totalsX - 4, line - 4, pageW - margin - totalsX + 4, 7, "F");
-  doc.text("TOTAL FACTURA", totalsX, line + 1);
+  doc.text(data.is_quote ? "TOTAL PRESUPUESTO" : "TOTAL FACTURA", totalsX, line + 1);
   doc.text(eur(data.total), totalsValX, line + 1, { align: "right" });
 
   let cursor = line + 14;
