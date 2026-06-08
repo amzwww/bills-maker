@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Settings, List, Users, LogOut } from "lucide-react";
+import { FileText, Settings, List, Users, LogOut, FileSignature } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/bills-logo.png";
 
