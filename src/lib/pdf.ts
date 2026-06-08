@@ -253,7 +253,7 @@ export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" =
   doc.setFont("helvetica", "bold");
   doc.setFillColor(230, 235, 245);
   doc.rect(totalsX - 4, line - 4, pageW - margin - totalsX + 4, 7, "F");
-  doc.text("TOTAL FACTURA", totalsX, line + 1);
+  doc.text(data.is_quote ? "TOTAL PRESUPUESTO" : "TOTAL FACTURA", totalsX, line + 1);
   doc.text(eur(data.total), totalsValX, line + 1, { align: "right" });
 
   let cursor = line + 14;
