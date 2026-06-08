@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Mic, PlusCircle, Trophy, GraduationCap } from "lucide-react";
+import { ArrowLeft, Mic, PlusCircle, Trophy, GraduationCap, FileSignature } from "lucide-react";
 
 const JonOptions = () => {
   return (
