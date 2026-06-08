@@ -44,6 +44,7 @@ export type InvoicePdfData = {
   university_accounting_office?: string | null;
   university_managing_body?: string | null;
   university_processing_unit?: string | null;
+  is_quote?: boolean;
 };
 
 function fmtDate(iso: string) {
