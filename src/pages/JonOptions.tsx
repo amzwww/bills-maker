@@ -47,6 +47,13 @@ const JonOptions = () => {
               <p className="text-sm text-muted-foreground">Factura por servicios de formación.</p>
             </Card>
           </Link>
+          <Link to="/presupuestos/nuevo?type=ponencia">
+            <Card className="p-6 hover:border-primary hover:shadow-lg transition-all cursor-pointer h-full">
+              <FileSignature className="h-8 w-8 text-primary mb-3" />
+              <h3 className="font-bold text-lg mb-1">E) Presupuesto</h3>
+              <p className="text-sm text-muted-foreground">Numeración <code>JHE-PF-AAAA-000</code>. Mismo formato que factura.</p>
+            </Card>
+          </Link>
         </div>
       </main>
     </div>
