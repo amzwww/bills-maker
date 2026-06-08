@@ -166,6 +166,23 @@ const NewQuote = () => {
       if (typeof data.amount === "number" && data.amount > 0) {
         setItems((prev) => prev.map((it, i) => i === 0 ? { ...it, unit_price: data.amount, quantity: 1, total: data.amount } : it));
       }
+      if (typeof data.expenses === "number" && data.expenses > 0) {
+        setItems((prev) => {
+          const expenseLine: LineItem = {
+            description: EXPENSES_INDENTED_LINE,
+            unit_price: data.expenses,
+            quantity: 1,
+            total: data.expenses,
+            indented: true,
+          };
+          const existingIdx = prev.findIndex((it) => it.description === EXPENSES_INDENTED_LINE);
+          if (existingIdx >= 0) {
+            return prev.map((it, i) => i === existingIdx ? { ...it, ...expenseLine } : it);
+          }
+          const filtered = prev.filter((it, i) => i === 0 || (it.description || "").trim() !== "");
+          return [...filtered, expenseLine];
+        });
+      }
       toast.success("Datos extraídos");
     } catch (e: any) {
       toast.error(e.message || "Error extrayendo datos");
