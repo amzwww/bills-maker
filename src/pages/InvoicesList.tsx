@@ -508,8 +508,24 @@ const InvoicesList = () => {
                   <p className="font-semibold text-amber-800 dark:text-amber-300 text-sm">
                     {overdueInvoices.length} pendiente{overdueInvoices.length === 1 ? "" : "s"}
                     {overdueDays !== "all" && ` >${overdueDays}d`}
+                    <span className="ml-1 font-normal opacity-70">
+                      ({dateBasis === "ponencia" ? "f. ponencia" : "f. factura"})
+                    </span>
                   </p>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 flex-wrap">
+                    <div className="flex gap-1 mr-2">
+                      {(["invoice", "ponencia"] as const).map((v) => (
+                        <Button
+                          key={v}
+                          type="button"
+                          size="sm"
+                          variant={dateBasis === v ? "default" : "outline"}
+                          onClick={() => setDateBasis(v)}
+                        >
+                          {v === "invoice" ? "F. factura" : "F. ponencia"}
+                        </Button>
+                      ))}
+                    </div>
                     {(["20", "30", "all"] as const).map((v) => (
                       <Button
                         key={v}
@@ -528,7 +544,7 @@ const InvoicesList = () => {
                 </p>
                 <ul className="mt-1 space-y-0.5 text-amber-700 dark:text-amber-400 max-h-40 overflow-y-auto pr-2">
                   {overdueInvoices.map((inv) => {
-                    const days = Math.floor((Date.now() - new Date(inv.invoice_date).getTime()) / 86400000);
+                    const days = Math.floor((Date.now() - new Date(refDate(inv)).getTime()) / 86400000);
                     return (
                       <li key={inv.id} className="font-mono text-xs">
                         {inv.invoice_number} — {inv.client_name} — {eur(parseFloat(inv.total))} — {days}d
