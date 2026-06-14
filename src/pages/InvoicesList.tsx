@@ -415,6 +415,7 @@ const InvoicesList = () => {
     const data = filtered.map((r) => ({
       Número: r.invoice_number,
       Fecha: r.invoice_date,
+      "Fecha ponencia": extractPonenciaDate(r) || "",
       Cliente: r.client_name,
       "NIF/CIF": r.client_tax_id || "",
       Tipo: r.invoice_type,
@@ -428,7 +429,7 @@ const InvoicesList = () => {
     }));
     const ws = XLSX.utils.json_to_sheet(data);
     ws["!cols"] = [
-      { wch: 16 }, { wch: 12 }, { wch: 28 }, { wch: 14 }, { wch: 10 },
+      { wch: 16 }, { wch: 12 }, { wch: 12 }, { wch: 28 }, { wch: 14 }, { wch: 10 },
       { wch: 40 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 },
       { wch: 9 }, { wch: 12 },
     ];
