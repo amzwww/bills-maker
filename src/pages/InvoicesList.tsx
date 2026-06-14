@@ -559,8 +559,12 @@ const InvoicesList = () => {
           <Card className="p-4">
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="h-4 w-4 text-primary" />
-              <h2 className="text-sm font-semibold">Tiempo medio de cobro (días)</h2>
-            </div>
+              <h2 className="text-sm font-semibold">
+                Tiempo medio de cobro (días){" "}
+                <span className="font-normal text-muted-foreground">
+                  · {dateBasis === "ponencia" ? "desde f. ponencia" : "desde f. factura"}
+                </span>
+              </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {paymentStats.map((s) => (
                 <div key={s.key} className="rounded-md border bg-muted/30 p-3">
