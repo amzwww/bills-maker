@@ -69,8 +69,23 @@ const InvoicesList = () => {
   const [paidFilter, setPaidFilter] = useState<"all" | "unpaid" | "paid">("all");
   const [typeFilter, setTypeFilter] = useState<Set<string>>(new Set());
   const [overdueDays, setOverdueDays] = useState<"all" | "20" | "30">("30");
+  const [dateBasis, setDateBasis] = useState<"invoice" | "ponencia">("invoice");
   const [sortKey, setSortKey] = useState<SortKey>("invoice_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  // Extrae la primera fecha DD/MM/YYYY encontrada en las líneas (fecha de ponencia)
+  const extractPonenciaDate = (inv: any): string | null => {
+    const items = (inv.line_items || []) as any[];
+    for (const li of items) {
+      const m = String(li?.description || "").match(/\b(\d{2})\/(\d{2})\/(\d{4})\b/);
+      if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+    }
+    return null;
+  };
+  const refDate = (inv: any): string => {
+    if (dateBasis === "ponencia") return extractPonenciaDate(inv) || inv.invoice_date;
+    return inv.invoice_date;
+  };
 
   const reload = async () => {
     const { data: invs } = await supabase
@@ -400,6 +415,7 @@ const InvoicesList = () => {
     const data = filtered.map((r) => ({
       Número: r.invoice_number,
       Fecha: r.invoice_date,
+      "Fecha ponencia": extractPonenciaDate(r) || "",
       Cliente: r.client_name,
       "NIF/CIF": r.client_tax_id || "",
       Tipo: r.invoice_type,
@@ -413,7 +429,7 @@ const InvoicesList = () => {
     }));
     const ws = XLSX.utils.json_to_sheet(data);
     ws["!cols"] = [
-      { wch: 16 }, { wch: 12 }, { wch: 28 }, { wch: 14 }, { wch: 10 },
+      { wch: 16 }, { wch: 12 }, { wch: 12 }, { wch: 28 }, { wch: 14 }, { wch: 10 },
       { wch: 40 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 },
       { wch: 9 }, { wch: 12 },
     ];
@@ -432,8 +448,8 @@ const InvoicesList = () => {
     const days = parseInt(overdueDays, 10);
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
-    return unpaid.filter((r) => new Date(r.invoice_date) < cutoff);
-  }, [rows, overdueDays]);
+    return unpaid.filter((r) => new Date(refDate(r)) < cutoff);
+  }, [rows, overdueDays, dateBasis]);
 
   // Estadísticas: tiempo medio de cobro por grupo
   const paymentStats = useMemo(() => {
@@ -453,14 +469,14 @@ const InvoicesList = () => {
         continue;
       }
       const totalDays = paid.reduce((s, r) => {
-        const issued = new Date(r.invoice_date).getTime();
+        const issued = new Date(refDate(r)).getTime();
         const paidAt = new Date(r.paid_at).getTime();
         return s + Math.max(0, (paidAt - issued) / 86400000);
       }, 0);
       result.push({ key, label: g.label, avgDays: totalDays / paid.length, count: paid.length });
     }
     return result;
-  }, [rows]);
+  }, [rows, dateBasis]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -493,8 +509,24 @@ const InvoicesList = () => {
                   <p className="font-semibold text-amber-800 dark:text-amber-300 text-sm">
                     {overdueInvoices.length} pendiente{overdueInvoices.length === 1 ? "" : "s"}
                     {overdueDays !== "all" && ` >${overdueDays}d`}
+                    <span className="ml-1 font-normal opacity-70">
+                      ({dateBasis === "ponencia" ? "f. ponencia" : "f. factura"})
+                    </span>
                   </p>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 flex-wrap">
+                    <div className="flex gap-1 mr-2">
+                      {(["invoice", "ponencia"] as const).map((v) => (
+                        <Button
+                          key={v}
+                          type="button"
+                          size="sm"
+                          variant={dateBasis === v ? "default" : "outline"}
+                          onClick={() => setDateBasis(v)}
+                        >
+                          {v === "invoice" ? "F. factura" : "F. ponencia"}
+                        </Button>
+                      ))}
+                    </div>
                     {(["20", "30", "all"] as const).map((v) => (
                       <Button
                         key={v}
@@ -513,7 +545,7 @@ const InvoicesList = () => {
                 </p>
                 <ul className="mt-1 space-y-0.5 text-amber-700 dark:text-amber-400 max-h-40 overflow-y-auto pr-2">
                   {overdueInvoices.map((inv) => {
-                    const days = Math.floor((Date.now() - new Date(inv.invoice_date).getTime()) / 86400000);
+                    const days = Math.floor((Date.now() - new Date(refDate(inv)).getTime()) / 86400000);
                     return (
                       <li key={inv.id} className="font-mono text-xs">
                         {inv.invoice_number} — {inv.client_name} — {eur(parseFloat(inv.total))} — {days}d
@@ -528,7 +560,12 @@ const InvoicesList = () => {
           <Card className="p-4">
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="h-4 w-4 text-primary" />
-              <h2 className="text-sm font-semibold">Tiempo medio de cobro (días)</h2>
+              <h2 className="text-sm font-semibold">
+                Tiempo medio de cobro (días){" "}
+                <span className="font-normal text-muted-foreground">
+                  · {dateBasis === "ponencia" ? "desde f. ponencia" : "desde f. factura"}
+                </span>
+              </h2>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {paymentStats.map((s) => (
@@ -717,6 +754,7 @@ const InvoicesList = () => {
                   <th className="p-3 cursor-pointer select-none whitespace-nowrap" onClick={() => toggleSort("invoice_date")}>
                     Fecha<SortIcon k="invoice_date" />
                   </th>
+                  <th className="p-3 whitespace-nowrap">F. ponencia</th>
                   <th className="p-3 cursor-pointer select-none" onClick={() => toggleSort("client_name")}>
                     Cliente<SortIcon k="client_name" />
                   </th>
@@ -731,12 +769,15 @@ const InvoicesList = () => {
               </thead>
               <tbody>
                 {filtered.length === 0 && (
-                  <tr><td colSpan={8} className="p-6 text-center text-muted-foreground">Sin resultados</td></tr>
+                  <tr><td colSpan={9} className="p-6 text-center text-muted-foreground">Sin resultados</td></tr>
                 )}
                 {filtered.map((r) => (
                   <tr key={r.id} className="border-t">
                     <td className="p-3 font-mono whitespace-nowrap">{r.invoice_number}</td>
                     <td className="p-3 whitespace-nowrap">{r.invoice_date}</td>
+                    <td className="p-3 whitespace-nowrap text-muted-foreground">
+                      {extractPonenciaDate(r) || "—"}
+                    </td>
                     <td className="p-3">{r.client_name}</td>
                     <td className="p-3">
                       {r.issuer_id === "BN" ? (
