@@ -69,8 +69,23 @@ const InvoicesList = () => {
   const [paidFilter, setPaidFilter] = useState<"all" | "unpaid" | "paid">("all");
   const [typeFilter, setTypeFilter] = useState<Set<string>>(new Set());
   const [overdueDays, setOverdueDays] = useState<"all" | "20" | "30">("30");
+  const [dateBasis, setDateBasis] = useState<"invoice" | "ponencia">("invoice");
   const [sortKey, setSortKey] = useState<SortKey>("invoice_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  // Extrae la primera fecha DD/MM/YYYY encontrada en las líneas (fecha de ponencia)
+  const extractPonenciaDate = (inv: any): string | null => {
+    const items = (inv.line_items || []) as any[];
+    for (const li of items) {
+      const m = String(li?.description || "").match(/\b(\d{2})\/(\d{2})\/(\d{4})\b/);
+      if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+    }
+    return null;
+  };
+  const refDate = (inv: any): string => {
+    if (dateBasis === "ponencia") return extractPonenciaDate(inv) || inv.invoice_date;
+    return inv.invoice_date;
+  };
 
   const reload = async () => {
     const { data: invs } = await supabase
