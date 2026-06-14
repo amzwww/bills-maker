@@ -768,12 +768,15 @@ const InvoicesList = () => {
               </thead>
               <tbody>
                 {filtered.length === 0 && (
-                  <tr><td colSpan={8} className="p-6 text-center text-muted-foreground">Sin resultados</td></tr>
+                  <tr><td colSpan={9} className="p-6 text-center text-muted-foreground">Sin resultados</td></tr>
                 )}
                 {filtered.map((r) => (
                   <tr key={r.id} className="border-t">
                     <td className="p-3 font-mono whitespace-nowrap">{r.invoice_number}</td>
                     <td className="p-3 whitespace-nowrap">{r.invoice_date}</td>
+                    <td className="p-3 whitespace-nowrap text-muted-foreground">
+                      {extractPonenciaDate(r) || "—"}
+                    </td>
                     <td className="p-3">{r.client_name}</td>
                     <td className="p-3">
                       {r.issuer_id === "BN" ? (
