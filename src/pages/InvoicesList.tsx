@@ -753,6 +753,7 @@ const InvoicesList = () => {
                   <th className="p-3 cursor-pointer select-none whitespace-nowrap" onClick={() => toggleSort("invoice_date")}>
                     Fecha<SortIcon k="invoice_date" />
                   </th>
+                  <th className="p-3 whitespace-nowrap">F. ponencia</th>
                   <th className="p-3 cursor-pointer select-none" onClick={() => toggleSort("client_name")}>
                     Cliente<SortIcon k="client_name" />
                   </th>
