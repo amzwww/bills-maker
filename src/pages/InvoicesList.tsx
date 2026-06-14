@@ -565,6 +565,7 @@ const InvoicesList = () => {
                   · {dateBasis === "ponencia" ? "desde f. ponencia" : "desde f. factura"}
                 </span>
               </h2>
+            </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {paymentStats.map((s) => (
                 <div key={s.key} className="rounded-md border bg-muted/30 p-3">
