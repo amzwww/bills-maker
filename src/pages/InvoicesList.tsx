@@ -447,8 +447,8 @@ const InvoicesList = () => {
     const days = parseInt(overdueDays, 10);
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
-    return unpaid.filter((r) => new Date(r.invoice_date) < cutoff);
-  }, [rows, overdueDays]);
+    return unpaid.filter((r) => new Date(refDate(r)) < cutoff);
+  }, [rows, overdueDays, dateBasis]);
 
   // Estadísticas: tiempo medio de cobro por grupo
   const paymentStats = useMemo(() => {
@@ -468,14 +468,14 @@ const InvoicesList = () => {
         continue;
       }
       const totalDays = paid.reduce((s, r) => {
-        const issued = new Date(r.invoice_date).getTime();
+        const issued = new Date(refDate(r)).getTime();
         const paidAt = new Date(r.paid_at).getTime();
         return s + Math.max(0, (paidAt - issued) / 86400000);
       }, 0);
       result.push({ key, label: g.label, avgDays: totalDays / paid.length, count: paid.length });
     }
     return result;
-  }, [rows]);
+  }, [rows, dateBasis]);
 
   return (
     <div className="min-h-screen bg-background">
