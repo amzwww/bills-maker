@@ -119,13 +119,6 @@ export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" =
     doc.text(data.rectified_invoice_number, pageW - margin, y, { align: "right" });
     y += 5;
   }
-  if (data.our_reference) {
-    doc.setFont("helvetica", "bold");
-    doc.text("NUESTRA REFERENCIA:", pageW - margin - labelOffset, y);
-    doc.setFont("helvetica", "normal");
-    doc.text(data.our_reference, pageW - margin, y, { align: "right" });
-    y += 5;
-  }
 
   // Facturar a (bloque vertical limpio, sin solapes ni duplicados)
   y = Math.max(y, margin + 40) + 6;
@@ -193,6 +186,26 @@ export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" =
     y += 5;
     for (let i = 1; i < orderLines.length; i++) {
       doc.text(orderLines[i], valueX, y);
+      y += 5;
+    }
+  }
+
+  // Nuestra referencia - debajo de los datos del cliente
+  if (data.our_reference) {
+    y += 2;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    const label = "NUESTRA REFERENCIA:";
+    doc.text(label, margin, y);
+    doc.setFont("helvetica", "normal");
+    const labelW = doc.getTextWidth(label);
+    const valueX = margin + labelW + 3;
+    const maxValueW = pageW - margin - valueX;
+    const refLines = doc.splitTextToSize(data.our_reference, maxValueW) as string[];
+    doc.text(refLines[0], valueX, y);
+    y += 5;
+    for (let i = 1; i < refLines.length; i++) {
+      doc.text(refLines[i], valueX, y);
       y += 5;
     }
   }
