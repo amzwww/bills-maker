@@ -119,13 +119,6 @@ export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" =
     doc.text(data.rectified_invoice_number, pageW - margin, y, { align: "right" });
     y += 5;
   }
-  if (data.our_reference) {
-    doc.setFont("helvetica", "bold");
-    doc.text("NUESTRA REFERENCIA:", pageW - margin - labelOffset, y);
-    doc.setFont("helvetica", "normal");
-    doc.text(data.our_reference, pageW - margin, y, { align: "right" });
-    y += 5;
-  }
 
   // Facturar a (bloque vertical limpio, sin solapes ni duplicados)
   y = Math.max(y, margin + 40) + 6;
