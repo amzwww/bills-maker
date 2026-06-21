@@ -7,9 +7,12 @@ export type LineItem = {
   parent_header?: boolean; // línea que es solo un encabezado (sin importes), p.ej. la "Ponencia DD/MM/AAAA" en complementos
 };
 
+export type CanaryIgicRate = 0 | 7 | 20;
+
 export type TaxContext = {
   isForeign: boolean;
   isCanary: boolean;
+  canaryIgicRate?: CanaryIgicRate;
 };
 
 export function computeTaxes(subtotal: number, ctx: TaxContext) {
@@ -17,9 +20,10 @@ export function computeTaxes(subtotal: number, ctx: TaxContext) {
     return { vat_rate: 0, vat_label: "IVA", vat_amount: 0, irpf_rate: 0, irpf_amount: 0 };
   }
   if (ctx.isCanary) {
-    const vat_amount = round2(subtotal * 0.07);
+    const rate = (ctx.canaryIgicRate ?? 0) as CanaryIgicRate;
+    const vat_amount = round2(subtotal * (rate / 100));
     const irpf_amount = round2(subtotal * 0.15);
-    return { vat_rate: 7, vat_label: "IGIC", vat_amount, irpf_rate: 15, irpf_amount };
+    return { vat_rate: rate, vat_label: "IGIC", vat_amount, irpf_rate: 15, irpf_amount };
   }
   const vat_amount = round2(subtotal * 0.21);
   const irpf_amount = round2(subtotal * 0.15);
