@@ -351,13 +351,13 @@ const NewInvoice = () => {
 
   const subtotal = useMemo(() => computeSubtotal(items), [items]);
   const taxes = useMemo(() => {
-    const t = computeTaxes(subtotal, { isForeign, isCanary });
+    const t = computeTaxes(subtotal, { isForeign, isCanary, canaryIgicRate });
     // BRIGHTNEXUS (emisor BN) no está sujeto a retención de IRPF
     if (issuerId === "BN") {
       return { ...t, irpf_rate: 0, irpf_amount: 0 };
     }
     return t;
-  }, [subtotal, isForeign, isCanary, issuerId]);
+  }, [subtotal, isForeign, isCanary, canaryIgicRate, issuerId]);
   const total = useMemo(() => round2(subtotal + taxes.vat_amount - taxes.irpf_amount), [subtotal, taxes]);
 
   const updateItem = (idx: number, patch: Partial<LineItem>) => {
