@@ -57,6 +57,7 @@ const NewQuote = () => {
   const [clientCountry, setClientCountry] = useState("");
   const [isForeign, setIsForeign] = useState(false);
   const [isCanary, setIsCanary] = useState(false);
+  const [canaryIgicRate, setCanaryIgicRate] = useState<0 | 7 | 20>(0);
   const [isUniversity, setIsUniversity] = useState(false);
   const [uniAccountingOffice, setUniAccountingOffice] = useState("");
   const [uniManagingBody, setUniManagingBody] = useState("");
