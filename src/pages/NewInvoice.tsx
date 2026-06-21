@@ -168,6 +168,10 @@ const NewInvoice = () => {
       setClientCountry(q.client_country || "");
       setIsForeign(q.client_is_foreign);
       setIsCanary(q.client_is_canary);
+      if (q.client_is_canary && q.vat_label === "IGIC") {
+        const r = Number(q.vat_rate);
+        setCanaryIgicRate(r === 7 ? 7 : r === 20 ? 20 : 0);
+      }
       setIsUniversity(!!q.is_university);
       setUniAccountingOffice(q.university_accounting_office || "");
       setUniManagingBody(q.university_managing_body || "");
