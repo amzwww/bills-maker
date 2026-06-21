@@ -115,6 +115,10 @@ const NewQuote = () => {
       setClientCountry(quote.client_country || "");
       setIsForeign(quote.client_is_foreign);
       setIsCanary(quote.client_is_canary);
+      if (quote.client_is_canary && quote.vat_label === "IGIC") {
+        const r = Number(quote.vat_rate);
+        setCanaryIgicRate(r === 7 ? 7 : r === 20 ? 20 : 0);
+      }
       setIsUniversity(!!quote.is_university);
       setUniAccountingOffice(quote.university_accounting_office || "");
       setUniManagingBody(quote.university_managing_body || "");
