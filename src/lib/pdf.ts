@@ -254,8 +254,10 @@ export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" =
   doc.text(eur(data.subtotal), totalsValX, endY + 4, { align: "right" });
 
   let line = endY + 9;
-  if (data.vat_amount > 0 || data.vat_rate > 0) {
-    doc.text(`${data.vat_label} ${data.vat_rate.toFixed(2)}%`, totalsX, line);
+  const isIgicExempt = data.vat_label === "IGIC" && data.vat_rate === 0;
+  if (data.vat_amount > 0 || data.vat_rate > 0 || isIgicExempt) {
+    const ratePart = `${data.vat_rate.toFixed(2)}%${isIgicExempt ? "*" : ""}`;
+    doc.text(`${data.vat_label} ${ratePart}`, totalsX, line);
     doc.text(eur(data.vat_amount), totalsValX, line, { align: "right" });
     line += 5;
   }
