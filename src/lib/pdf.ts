@@ -274,6 +274,16 @@ export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" =
 
   let cursor = line + 14;
 
+  // Nota de exención IGIC (Canarias 0%)
+  if (isIgicExempt) {
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(8.5);
+    const exemptText = "*Exención de IGIC por Inversión Sujeto Pasivo en virtud art. 19.1 2º de la Ley 20/1991";
+    const exemptLines = doc.splitTextToSize(exemptText, pageW - margin * 2);
+    doc.text(exemptLines, margin, cursor);
+    cursor += exemptLines.length * 4 + 4;
+  }
+
   // Pre-payment note (si existe)
   if (data.pre_payment_note && data.pre_payment_note.trim()) {
     doc.setFont("helvetica", "bolditalic");
