@@ -62,6 +62,7 @@ const NewInvoice = () => {
   const [clientCountry, setClientCountry] = useState("");
   const [isForeign, setIsForeign] = useState(false);
   const [isCanary, setIsCanary] = useState(false);
+  const [canaryIgicRate, setCanaryIgicRate] = useState<0 | 7 | 20>(0);
   const [isUniversity, setIsUniversity] = useState(false);
   const [uniAccountingOffice, setUniAccountingOffice] = useState("");
   const [uniManagingBody, setUniManagingBody] = useState("");
@@ -124,6 +125,10 @@ const NewInvoice = () => {
       setClientCountry(inv.client_country || "");
       setIsForeign(inv.client_is_foreign);
       setIsCanary(inv.client_is_canary);
+      if (inv.client_is_canary && inv.vat_label === "IGIC") {
+        const r = Number(inv.vat_rate);
+        setCanaryIgicRate(r === 7 ? 7 : r === 20 ? 20 : 0);
+      }
       setIsUniversity(!!(inv as any).is_university);
       setUniAccountingOffice((inv as any).university_accounting_office || "");
       setUniManagingBody((inv as any).university_managing_body || "");
@@ -163,6 +168,10 @@ const NewInvoice = () => {
       setClientCountry(q.client_country || "");
       setIsForeign(q.client_is_foreign);
       setIsCanary(q.client_is_canary);
+      if (q.client_is_canary && q.vat_label === "IGIC") {
+        const r = Number(q.vat_rate);
+        setCanaryIgicRate(r === 7 ? 7 : r === 20 ? 20 : 0);
+      }
       setIsUniversity(!!q.is_university);
       setUniAccountingOffice(q.university_accounting_office || "");
       setUniManagingBody(q.university_managing_body || "");
@@ -342,13 +351,13 @@ const NewInvoice = () => {
 
   const subtotal = useMemo(() => computeSubtotal(items), [items]);
   const taxes = useMemo(() => {
-    const t = computeTaxes(subtotal, { isForeign, isCanary });
+    const t = computeTaxes(subtotal, { isForeign, isCanary, canaryIgicRate });
     // BRIGHTNEXUS (emisor BN) no está sujeto a retención de IRPF
     if (issuerId === "BN") {
       return { ...t, irpf_rate: 0, irpf_amount: 0 };
     }
     return t;
-  }, [subtotal, isForeign, isCanary, issuerId]);
+  }, [subtotal, isForeign, isCanary, canaryIgicRate, issuerId]);
   const total = useMemo(() => round2(subtotal + taxes.vat_amount - taxes.irpf_amount), [subtotal, taxes]);
 
   const updateItem = (idx: number, patch: Partial<LineItem>) => {
@@ -737,9 +746,22 @@ const NewInvoice = () => {
               <span className="text-sm">Cliente extranjero (sin IVA ni IRPF)</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
-              <Checkbox checked={isCanary} onCheckedChange={(v) => { setIsCanary(!!v); if (v) setIsForeign(false); }} />
-              <span className="text-sm">Canarias (IGIC 7% en lugar de IVA)</span>
+              <Checkbox checked={isCanary} onCheckedChange={(v) => { setIsCanary(!!v); if (v) { setIsForeign(false); setCanaryIgicRate(0); } }} />
+              <span className="text-sm">Canarias (IGIC)</span>
             </label>
+            {isCanary && (
+              <div className="flex items-center gap-2">
+                <Label className="mb-0 text-sm">Tipo IGIC:</Label>
+                <Select value={String(canaryIgicRate)} onValueChange={(v) => setCanaryIgicRate(Number(v) as 0 | 7 | 20)}>
+                  <SelectTrigger className="w-[260px] h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">IGIC 0% (exención ISP)</SelectItem>
+                    <SelectItem value="7">IGIC 7%</SelectItem>
+                    <SelectItem value="20">IGIC 20%</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <label className="flex items-center gap-2 cursor-pointer">
               <Checkbox checked={isUniversity} onCheckedChange={(v) => { setIsUniversity(!!v); if (!v) { setUniAccountingOffice(""); setUniManagingBody(""); setUniProcessingUnit(""); } }} />
               <span className="text-sm">Universidad</span>
@@ -813,8 +835,8 @@ const NewInvoice = () => {
 
           <div className="border-t pt-4 space-y-1 text-right">
             <div>Subtotal: <span className="font-semibold">{eur(subtotal)}</span></div>
-            {taxes.vat_amount > 0 && (
-              <div>{taxes.vat_label} {taxes.vat_rate}%: <span className="font-semibold">{eur(taxes.vat_amount)}</span></div>
+            {(taxes.vat_amount > 0 || (taxes.vat_label === "IGIC" && isCanary)) && (
+              <div>{taxes.vat_label} {taxes.vat_rate}%{taxes.vat_label === "IGIC" && taxes.vat_rate === 0 ? "*" : ""}: <span className="font-semibold">{eur(taxes.vat_amount)}</span></div>
             )}
             {taxes.irpf_amount > 0 && (
               <div>IRPF {taxes.irpf_rate}%: <span className="font-semibold">-{eur(taxes.irpf_amount)}</span></div>

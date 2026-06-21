@@ -254,8 +254,10 @@ export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" =
   doc.text(eur(data.subtotal), totalsValX, endY + 4, { align: "right" });
 
   let line = endY + 9;
-  if (data.vat_amount > 0 || data.vat_rate > 0) {
-    doc.text(`${data.vat_label} ${data.vat_rate.toFixed(2)}%`, totalsX, line);
+  const isIgicExempt = data.vat_label === "IGIC" && data.vat_rate === 0;
+  if (data.vat_amount > 0 || data.vat_rate > 0 || isIgicExempt) {
+    const ratePart = `${data.vat_rate.toFixed(2)}%${isIgicExempt ? "*" : ""}`;
+    doc.text(`${data.vat_label} ${ratePart}`, totalsX, line);
     doc.text(eur(data.vat_amount), totalsValX, line, { align: "right" });
     line += 5;
   }
@@ -271,6 +273,16 @@ export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" =
   doc.text(eur(data.total), totalsValX, line + 1, { align: "right" });
 
   let cursor = line + 14;
+
+  // Nota de exención IGIC (Canarias 0%)
+  if (isIgicExempt) {
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(8.5);
+    const exemptText = "*Exención de IGIC por Inversión Sujeto Pasivo en virtud art. 19.1 2º de la Ley 20/1991";
+    const exemptLines = doc.splitTextToSize(exemptText, pageW - margin * 2);
+    doc.text(exemptLines, margin, cursor);
+    cursor += exemptLines.length * 4 + 4;
+  }
 
   // Pre-payment note (si existe)
   if (data.pre_payment_note && data.pre_payment_note.trim()) {
