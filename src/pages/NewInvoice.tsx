@@ -835,8 +835,8 @@ const NewInvoice = () => {
 
           <div className="border-t pt-4 space-y-1 text-right">
             <div>Subtotal: <span className="font-semibold">{eur(subtotal)}</span></div>
-            {taxes.vat_amount > 0 && (
-              <div>{taxes.vat_label} {taxes.vat_rate}%: <span className="font-semibold">{eur(taxes.vat_amount)}</span></div>
+            {(taxes.vat_amount > 0 || (taxes.vat_label === "IGIC" && isCanary)) && (
+              <div>{taxes.vat_label} {taxes.vat_rate}%{taxes.vat_label === "IGIC" && taxes.vat_rate === 0 ? "*" : ""}: <span className="font-semibold">{eur(taxes.vat_amount)}</span></div>
             )}
             {taxes.irpf_amount > 0 && (
               <div>IRPF {taxes.irpf_rate}%: <span className="font-semibold">-{eur(taxes.irpf_amount)}</span></div>
