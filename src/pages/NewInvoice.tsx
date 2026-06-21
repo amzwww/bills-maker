@@ -746,9 +746,22 @@ const NewInvoice = () => {
               <span className="text-sm">Cliente extranjero (sin IVA ni IRPF)</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
-              <Checkbox checked={isCanary} onCheckedChange={(v) => { setIsCanary(!!v); if (v) setIsForeign(false); }} />
-              <span className="text-sm">Canarias (IGIC 7% en lugar de IVA)</span>
+              <Checkbox checked={isCanary} onCheckedChange={(v) => { setIsCanary(!!v); if (v) { setIsForeign(false); setCanaryIgicRate(0); } }} />
+              <span className="text-sm">Canarias (IGIC)</span>
             </label>
+            {isCanary && (
+              <div className="flex items-center gap-2">
+                <Label className="mb-0 text-sm">Tipo IGIC:</Label>
+                <Select value={String(canaryIgicRate)} onValueChange={(v) => setCanaryIgicRate(Number(v) as 0 | 7 | 20)}>
+                  <SelectTrigger className="w-[260px] h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">IGIC 0% (exención ISP)</SelectItem>
+                    <SelectItem value="7">IGIC 7%</SelectItem>
+                    <SelectItem value="20">IGIC 20%</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <label className="flex items-center gap-2 cursor-pointer">
               <Checkbox checked={isUniversity} onCheckedChange={(v) => { setIsUniversity(!!v); if (!v) { setUniAccountingOffice(""); setUniManagingBody(""); setUniProcessingUnit(""); } }} />
               <span className="text-sm">Universidad</span>
