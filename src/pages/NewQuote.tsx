@@ -252,7 +252,7 @@ const NewQuote = () => {
   }, [type, ponenciaDate]);
 
   const subtotal = useMemo(() => computeSubtotal(items), [items]);
-  const taxes = useMemo(() => computeTaxes(subtotal, { isForeign, isCanary }), [subtotal, isForeign, isCanary]);
+  const taxes = useMemo(() => computeTaxes(subtotal, { isForeign, isCanary, canaryIgicRate }), [subtotal, isForeign, isCanary, canaryIgicRate]);
   const total = useMemo(() => round2(subtotal + taxes.vat_amount - taxes.irpf_amount), [subtotal, taxes]);
 
   const updateItem = (idx: number, patch: Partial<LineItem>) => {
