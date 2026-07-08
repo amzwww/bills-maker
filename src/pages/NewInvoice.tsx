@@ -548,7 +548,7 @@ const NewInvoice = () => {
     }
   };
 
-  const typeLabel = { ponencia: "Ponencia", complemento: "Complemento", sponsor: "Sponsor", formacion: "Formación" }[type];
+  const typeLabel = { ponencia: "Ponencia", complemento: "Complemento", sponsor: "Sponsor", formacion: "Formación", master: "Máster", coworking: "Coworking" }[type];
 
   return (
     <div className="min-h-screen bg-background pb-16">
