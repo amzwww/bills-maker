@@ -28,7 +28,7 @@ type PastClient = {
   client_is_canary: boolean;
 };
 
-type InvoiceType = "ponencia" | "complemento" | "sponsor" | "formacion";
+type InvoiceType = "ponencia" | "complemento" | "sponsor" | "formacion" | "master" | "coworking";
 
 const NewInvoice = () => {
   const [params] = useSearchParams();
