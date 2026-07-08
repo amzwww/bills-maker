@@ -610,6 +610,8 @@ const NewInvoice = () => {
                   <SelectItem value="complemento">Complemento</SelectItem>
                   <SelectItem value="sponsor">Sponsor</SelectItem>
                   <SelectItem value="formacion">Formación</SelectItem>
+                  <SelectItem value="master">Máster</SelectItem>
+                  <SelectItem value="coworking">Coworking</SelectItem>
                 </SelectContent>
               </Select>
             </div>
