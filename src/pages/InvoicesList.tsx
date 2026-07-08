@@ -696,6 +696,8 @@ const InvoicesList = () => {
                       ["ponencia", "Ponencia"],
                       ["mixta", "Mixta"],
                       ["formacion", "Formación"],
+                      ["master", "Máster"],
+                      ["coworking", "Coworking"],
                       ["gastos", "Gastos"],
                       ["sponsor", "Sponsor"],
                       ["rectificativa", "Rectificativas"],
