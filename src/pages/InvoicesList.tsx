@@ -457,6 +457,8 @@ const InvoicesList = () => {
       ponencias: { label: "Ponencias", types: ["ponencia", "mixta"] },
       gastos: { label: "Gastos", types: ["gastos"] },
       formaciones: { label: "Formaciones", types: ["formacion"] },
+      master: { label: "Máster", types: ["master"] },
+      coworking: { label: "Coworking", types: ["coworking"] },
       sponsor: { label: "Sponsor", types: ["sponsor"] },
     };
     const result: { key: string; label: string; avgDays: number | null; count: number }[] = [];
