@@ -28,7 +28,7 @@ type PastClient = {
   client_is_canary: boolean;
 };
 
-type InvoiceType = "ponencia" | "complemento" | "sponsor" | "formacion";
+type InvoiceType = "ponencia" | "complemento" | "sponsor" | "formacion" | "master" | "coworking";
 
 const NewInvoice = () => {
   const [params] = useSearchParams();
@@ -548,7 +548,7 @@ const NewInvoice = () => {
     }
   };
 
-  const typeLabel = { ponencia: "Ponencia", complemento: "Complemento", sponsor: "Sponsor", formacion: "Formación" }[type];
+  const typeLabel = { ponencia: "Ponencia", complemento: "Complemento", sponsor: "Sponsor", formacion: "Formación", master: "Máster", coworking: "Coworking" }[type];
 
   return (
     <div className="min-h-screen bg-background pb-16">
@@ -610,6 +610,8 @@ const NewInvoice = () => {
                   <SelectItem value="complemento">Complemento</SelectItem>
                   <SelectItem value="sponsor">Sponsor</SelectItem>
                   <SelectItem value="formacion">Formación</SelectItem>
+                  <SelectItem value="master">Máster</SelectItem>
+                  <SelectItem value="coworking">Coworking</SelectItem>
                 </SelectContent>
               </Select>
             </div>

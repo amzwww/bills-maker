@@ -46,7 +46,7 @@ export function eur(n: number) {
   }).format(n);
 }
 
-export type InvoiceType = "ponencia" | "gastos" | "mixta" | "sponsor" | "complemento" | "formacion";
+export type InvoiceType = "ponencia" | "gastos" | "mixta" | "sponsor" | "complemento" | "formacion" | "master" | "coworking";
 
 /**
  * Clasifica el tipo de factura por contenido de líneas:

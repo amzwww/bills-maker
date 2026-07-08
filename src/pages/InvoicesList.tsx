@@ -457,6 +457,8 @@ const InvoicesList = () => {
       ponencias: { label: "Ponencias", types: ["ponencia", "mixta"] },
       gastos: { label: "Gastos", types: ["gastos"] },
       formaciones: { label: "Formaciones", types: ["formacion"] },
+      master: { label: "Máster", types: ["master"] },
+      coworking: { label: "Coworking", types: ["coworking"] },
       sponsor: { label: "Sponsor", types: ["sponsor"] },
     };
     const result: { key: string; label: string; avgDays: number | null; count: number }[] = [];
@@ -696,6 +698,8 @@ const InvoicesList = () => {
                       ["ponencia", "Ponencia"],
                       ["mixta", "Mixta"],
                       ["formacion", "Formación"],
+                      ["master", "Máster"],
+                      ["coworking", "Coworking"],
                       ["gastos", "Gastos"],
                       ["sponsor", "Sponsor"],
                       ["rectificativa", "Rectificativas"],
@@ -789,7 +793,10 @@ const InvoicesList = () => {
                     <td className="p-3 capitalize">
                       {r.is_rectificative ? (
                         <Badge variant="outline" className="border-red-400 text-red-600 dark:text-red-400">Rectificativa</Badge>
-                      ) : r.invoice_type === "formacion" ? "Formación" : r.invoice_type}
+                      ) : r.invoice_type === "formacion" ? "Formación"
+                        : r.invoice_type === "master" ? "Máster"
+                        : r.invoice_type === "coworking" ? "Coworking"
+                        : r.invoice_type}
                     </td>
                     <td className="p-3 text-right font-semibold whitespace-nowrap">{eur(parseFloat(r.total))}</td>
                     <td className="p-3 text-center">
