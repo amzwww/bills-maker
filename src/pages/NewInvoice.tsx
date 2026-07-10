@@ -378,6 +378,7 @@ const NewInvoice = () => {
         if (i !== idx) return it;
         const merged = { ...it, ...patch };
         if (!merged.parent_header) {
+          if (typeof patch.unit_price === "number") merged.unit_price = round2(patch.unit_price);
           merged.total = round2((merged.unit_price || 0) * (merged.quantity || 0));
         }
         return merged;
