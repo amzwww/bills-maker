@@ -686,6 +686,7 @@ const InvoicesList = () => {
                     {([
                       ["ponencia", "Ponencia"],
                       ["mixta", "Mixta"],
+                      ["complemento", "Complemento"],
                       ["formacion", "Formación"],
                       ["master", "Máster"],
                       ["coworking", "Coworking"],
@@ -792,6 +793,7 @@ const InvoicesList = () => {
                       ) : r.invoice_type === "formacion" ? "Formación"
                         : r.invoice_type === "master" ? "Máster"
                         : r.invoice_type === "coworking" ? "Coworking"
+                        : r.invoice_type === "complemento" ? "Complemento"
                         : r.invoice_type}
                     </td>
                     <td className="p-3 text-right font-semibold whitespace-nowrap">{eur(parseFloat(r.total))}</td>
