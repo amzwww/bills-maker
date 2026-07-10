@@ -125,8 +125,12 @@ const NewQuote = () => {
       }
       setIsUniversity(!!quote.is_university);
       setUniAccountingOffice(quote.university_accounting_office || "");
+      setUniAccountingOfficeCode((quote as any).university_accounting_office_code || "");
       setUniManagingBody(quote.university_managing_body || "");
+      setUniManagingBodyCode((quote as any).university_managing_body_code || "");
       setUniProcessingUnit(quote.university_processing_unit || "");
+      setUniProcessingUnitCode((quote as any).university_processing_unit_code || "");
+      setUniProposingBody((quote as any).university_proposing_body || "");
       setItems((quote.line_items as any[]) || [{ description: "", unit_price: 0, quantity: 1, total: 0 }]);
       setPreviewNumber(quote.quote_number);
     })();
