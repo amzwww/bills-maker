@@ -916,6 +916,36 @@ const NewInvoice = () => {
             )}
             <div className="text-lg pt-2">TOTAL: <span className="font-bold">{eur(total)}</span></div>
           </div>
+
+          {/* Conciliación por redondeos */}
+          <div className="border-t pt-4 grid md:grid-cols-[1fr_auto] gap-3 items-end">
+            <div>
+              <Label className="text-xs text-muted-foreground">Total esperado (opcional, para conciliar redondeos)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="Ej: 1210.00"
+                value={expectedTotal}
+                onChange={(e) => setExpectedTotal(e.target.value)}
+              />
+            </div>
+            {expectedNum !== null && !Number.isNaN(expectedNum) && (
+              <div className={`text-sm rounded-md px-3 py-2 ${totalDiff === 0 ? "bg-emerald-50 text-emerald-700" : Math.abs(totalDiff) <= 1 ? "bg-amber-50 text-amber-800" : "bg-red-50 text-red-700"}`}>
+                {totalDiff === 0 ? (
+                  <span>✓ Coincide con el total</span>
+                ) : (
+                  <span>Diferencia: <b>{totalDiff > 0 ? "+" : ""}{totalDiff.toFixed(2)} €</b></span>
+                )}
+              </div>
+            )}
+          </div>
+          {canReconcile && (
+            <div className="flex justify-end">
+              <Button size="sm" variant="outline" onClick={reconcileLastLine}>
+                Ajustar última línea ({totalDiff > 0 ? "+" : ""}{totalDiff.toFixed(2)} €)
+              </Button>
+            </div>
+          )}
         </Card>
 
         {/* Notas */}
