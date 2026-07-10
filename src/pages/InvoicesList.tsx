@@ -122,7 +122,10 @@ const InvoicesList = () => {
       if (error) throw error;
       const current = fresh || inv;
       const issuer = issuers[current.issuer_id];
-      if (!issuer) return toast.error("Emisor no encontrado");
+      if (!issuer) {
+        targetWindow?.close();
+        return toast.error("Emisor no encontrado");
+      }
       generateInvoicePdf(invoicePdfData(current, issuer), mode, targetWindow);
     } catch (e: any) {
       targetWindow?.close();
