@@ -65,8 +65,12 @@ const NewInvoice = () => {
   const [canaryIgicRate, setCanaryIgicRate] = useState<0 | 7 | 20>(0);
   const [isUniversity, setIsUniversity] = useState(false);
   const [uniAccountingOffice, setUniAccountingOffice] = useState("");
+  const [uniAccountingOfficeCode, setUniAccountingOfficeCode] = useState("");
   const [uniManagingBody, setUniManagingBody] = useState("");
+  const [uniManagingBodyCode, setUniManagingBodyCode] = useState("");
   const [uniProcessingUnit, setUniProcessingUnit] = useState("");
+  const [uniProcessingUnitCode, setUniProcessingUnitCode] = useState("");
+  const [uniProposingBody, setUniProposingBody] = useState("");
 
   // Tipo-específicos
   const [ponenciaDate, setPonenciaDate] = useState(""); // yyyy-mm-dd, descripción de ponencia
