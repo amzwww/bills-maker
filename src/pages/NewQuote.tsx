@@ -558,15 +558,19 @@ const NewQuote = () => {
               </div>
             )}
             <label className="flex items-center gap-2 cursor-pointer">
-              <Checkbox checked={isUniversity} onCheckedChange={(v) => { setIsUniversity(!!v); if (!v) { setUniAccountingOffice(""); setUniManagingBody(""); setUniProcessingUnit(""); } }} />
+              <Checkbox checked={isUniversity} onCheckedChange={(v) => { setIsUniversity(!!v); if (!v) { setUniAccountingOffice(""); setUniAccountingOfficeCode(""); setUniManagingBody(""); setUniManagingBodyCode(""); setUniProcessingUnit(""); setUniProcessingUnitCode(""); setUniProposingBody(""); } }} />
               <span className="text-sm">Universidad</span>
             </label>
           </div>
           {isUniversity && (
-            <div className="grid md:grid-cols-3 gap-4 pt-2">
-              <div><Label>Oficina contable</Label><Input value={uniAccountingOffice} onChange={(e) => setUniAccountingOffice(e.target.value)} /></div>
+            <div className="grid md:grid-cols-2 gap-4 pt-2">
+              <div><Label>Oficina contable</Label><Input value={uniAccountingOffice} onChange={(e) => setUniAccountingOffice(e.target.value)} placeholder="Universidad de Zaragoza" /></div>
+              <div><Label>Código oficina contable</Label><Input value={uniAccountingOfficeCode} onChange={(e) => setUniAccountingOfficeCode(e.target.value)} placeholder="U02100001" /></div>
               <div><Label>Órgano Gestor</Label><Input value={uniManagingBody} onChange={(e) => setUniManagingBody(e.target.value)} /></div>
+              <div><Label>Código órgano gestor</Label><Input value={uniManagingBodyCode} onChange={(e) => setUniManagingBodyCode(e.target.value)} placeholder="U02100009" /></div>
               <div><Label>Unidad Tramitadora</Label><Input value={uniProcessingUnit} onChange={(e) => setUniProcessingUnit(e.target.value)} /></div>
+              <div><Label>Código unidad tramitadora</Label><Input value={uniProcessingUnitCode} onChange={(e) => setUniProcessingUnitCode(e.target.value)} placeholder="U02100167" /></div>
+              <div className="md:col-span-2"><Label>Órgano proponente</Label><Input value={uniProposingBody} onChange={(e) => setUniProposingBody(e.target.value)} /></div>
             </div>
           )}
         </Card>
