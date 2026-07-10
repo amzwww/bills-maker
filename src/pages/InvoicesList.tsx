@@ -240,7 +240,13 @@ const InvoicesList = () => {
     if (!rectifyOpen) return;
     setRectifying(true);
     try {
-      const inv = rectifyOpen;
+      const { data: freshInv, error: loadErr } = await supabase
+        .from("invoices")
+        .select("*")
+        .eq("id", rectifyOpen.id)
+        .single();
+      if (loadErr) throw loadErr;
+      const inv = freshInv || rectifyOpen;
       const rectificationDate = new Date().toISOString().slice(0, 10);
       const year = parseInt(rectificationDate.slice(0, 4));
       // Get next rectificative seq (check rectificative gaps first)
