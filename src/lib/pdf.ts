@@ -56,7 +56,7 @@ function fmtDate(iso: string) {
   return `${d}/${m}/${y}`;
 }
 
-export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" = "save") {
+export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" = "save", targetWindow?: Window | null) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
   const margin = 18;
@@ -343,7 +343,11 @@ export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" =
   if (mode === "open") {
     const blob = doc.output("blob");
     const url = URL.createObjectURL(blob);
-    window.open(url, "_blank");
+    if (targetWindow && !targetWindow.closed) {
+      targetWindow.location.href = url;
+    } else {
+      window.open(url, "_blank");
+    }
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   } else {
     doc.save(`${data.invoice_number} - ${data.client_name}.pdf`);

@@ -11,6 +11,7 @@ import {
 import { ArrowLeft, FileDown, Eye, Pencil, Trash2, FileText, ArrowRightCircle, Plus } from "lucide-react";
 import { eur } from "@/lib/invoiceCalc";
 import { generateInvoicePdf, type Issuer } from "@/lib/pdf";
+import { quotePdfData } from "@/lib/invoicePdfData";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -48,33 +49,7 @@ const QuotesList = () => {
   const renderPdf = (q: any, mode: "save" | "open") => {
     const issuer = issuers[q.issuer_id];
     if (!issuer) return toast.error("Emisor no encontrado");
-    generateInvoicePdf({
-      issuer,
-      invoice_number: q.quote_number,
-      invoice_date: q.quote_date,
-      our_reference: q.our_reference,
-      their_order: q.their_order,
-      client_name: q.client_name,
-      client_tax_id: q.client_tax_id,
-      client_address_line1: q.client_address_line1,
-      client_address_line2: q.client_address_line2,
-      client_city_zip: q.client_city_zip,
-      client_country: q.client_country,
-      line_items: q.line_items || [],
-      subtotal: parseFloat(q.subtotal),
-      vat_rate: parseFloat(q.vat_rate),
-      vat_label: q.vat_label,
-      vat_amount: parseFloat(q.vat_amount),
-      irpf_rate: parseFloat(q.irpf_rate),
-      irpf_amount: parseFloat(q.irpf_amount),
-      total: parseFloat(q.total),
-      invoice_type: q.invoice_type,
-      is_university: q.is_university,
-      university_accounting_office: q.university_accounting_office,
-      university_managing_body: q.university_managing_body,
-      university_processing_unit: q.university_processing_unit,
-      is_quote: true,
-    }, mode);
+    generateInvoicePdf(quotePdfData(q, issuer), mode);
   };
 
   const filtered = useMemo(() => {

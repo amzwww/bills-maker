@@ -28,7 +28,7 @@ type PastClient = {
   client_is_canary: boolean;
 };
 
-type InvoiceType = "ponencia" | "complemento" | "sponsor" | "formacion" | "master" | "coworking";
+type InvoiceType = "ponencia" | "mixta" | "complemento" | "sponsor" | "formacion" | "master" | "coworking" | "gastos";
 
 const NewInvoice = () => {
   const [params] = useSearchParams();
@@ -51,6 +51,8 @@ const NewInvoice = () => {
     invoice_date: string;
     year: number;
     seq: number;
+    is_rectificative: boolean;
+    rectified_invoice_number: string | null;
   } | null>(null);
 
   // Cabecera
@@ -154,6 +156,8 @@ const NewInvoice = () => {
         invoice_date: inv.invoice_date,
         year: inv.year,
         seq: inv.seq,
+        is_rectificative: !!inv.is_rectificative,
+        rectified_invoice_number: inv.rectified_invoice_number || null,
       });
       setPreviewNumber(inv.invoice_number);
       const matchedKey = Object.entries(PRE_PAYMENT_NOTES).find(([k, v]) => k !== "none" && k !== "other" && (v as any).text === inv.pre_payment_note);
@@ -446,7 +450,7 @@ const NewInvoice = () => {
     setLoading(true);
     try {
       const prePaymentText = prePaymentKey === "other" ? (customPrePaymentText.trim() || null) : (PRE_PAYMENT_NOTES[prePaymentKey].text || null);
-      const computedType = (type === "complemento" || type === "formacion") ? type : classifyInvoice(items);
+      const computedType = type === "ponencia" ? classifyInvoice(items) : type;
 
       let invoiceNumber: string;
       let seq: number;
@@ -600,6 +604,8 @@ const NewInvoice = () => {
           total,
           pre_payment_note: prePaymentText,
           invoice_type: computedType,
+          is_rectificative: originalInvoice?.is_rectificative || false,
+          rectified_invoice_number: originalInvoice?.rectified_invoice_number || null,
           is_university: isUniversity,
           university_accounting_office: isUniversity ? uniAccountingOffice : undefined,
           university_accounting_office_code: isUniversity ? uniAccountingOfficeCode : undefined,
@@ -619,7 +625,7 @@ const NewInvoice = () => {
     }
   };
 
-  const typeLabel = { ponencia: "Ponencia", complemento: "Complemento", sponsor: "Sponsor", formacion: "Formación", master: "Máster", coworking: "Coworking" }[type];
+  const typeLabel = { ponencia: "Ponencia", mixta: "Mixta", complemento: "Complemento", sponsor: "Sponsor", formacion: "Formación", master: "Máster", coworking: "Coworking", gastos: "Gastos" }[type];
 
   return (
     <div className="min-h-screen bg-background pb-16">
@@ -678,11 +684,13 @@ const NewInvoice = () => {
                 <SelectTrigger className="w-full md:w-64"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ponencia">Ponencia</SelectItem>
+                  <SelectItem value="mixta">Mixta</SelectItem>
                   <SelectItem value="complemento">Complemento</SelectItem>
                   <SelectItem value="sponsor">Sponsor</SelectItem>
                   <SelectItem value="formacion">Formación</SelectItem>
                   <SelectItem value="master">Máster</SelectItem>
                   <SelectItem value="coworking">Coworking</SelectItem>
+                  <SelectItem value="gastos">Gastos</SelectItem>
                 </SelectContent>
               </Select>
             </div>
