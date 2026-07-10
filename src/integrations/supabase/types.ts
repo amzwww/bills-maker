@@ -425,6 +425,12 @@ export type Database = {
           missing_seq: number
         }[]
       }
+      find_rectificative_invoice_gaps: {
+        Args: { _issuer_id: string; _year: number }
+        Returns: {
+          missing_seq: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -437,6 +443,10 @@ export type Database = {
         Returns: number
       }
       next_quote_seq: {
+        Args: { _issuer_id: string; _year: number }
+        Returns: number
+      }
+      next_rectificative_invoice_seq: {
         Args: { _issuer_id: string; _year: number }
         Returns: number
       }
