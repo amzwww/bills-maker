@@ -97,8 +97,12 @@ export type Database = {
           their_order: string | null
           total: number
           university_accounting_office: string | null
+          university_accounting_office_code: string | null
           university_managing_body: string | null
+          university_managing_body_code: string | null
           university_processing_unit: string | null
+          university_processing_unit_code: string | null
+          university_proposing_body: string | null
           updated_at: string
           vat_amount: number
           vat_label: string
@@ -143,8 +147,12 @@ export type Database = {
           their_order?: string | null
           total?: number
           university_accounting_office?: string | null
+          university_accounting_office_code?: string | null
           university_managing_body?: string | null
+          university_managing_body_code?: string | null
           university_processing_unit?: string | null
+          university_processing_unit_code?: string | null
+          university_proposing_body?: string | null
           updated_at?: string
           vat_amount?: number
           vat_label?: string
@@ -189,8 +197,12 @@ export type Database = {
           their_order?: string | null
           total?: number
           university_accounting_office?: string | null
+          university_accounting_office_code?: string | null
           university_managing_body?: string | null
+          university_managing_body_code?: string | null
           university_processing_unit?: string | null
+          university_processing_unit_code?: string | null
+          university_proposing_body?: string | null
           updated_at?: string
           vat_amount?: number
           vat_label?: string
@@ -285,8 +297,12 @@ export type Database = {
           their_order: string | null
           total: number
           university_accounting_office: string | null
+          university_accounting_office_code: string | null
           university_managing_body: string | null
+          university_managing_body_code: string | null
           university_processing_unit: string | null
+          university_processing_unit_code: string | null
+          university_proposing_body: string | null
           updated_at: string
           vat_amount: number
           vat_label: string
@@ -322,8 +338,12 @@ export type Database = {
           their_order?: string | null
           total?: number
           university_accounting_office?: string | null
+          university_accounting_office_code?: string | null
           university_managing_body?: string | null
+          university_managing_body_code?: string | null
           university_processing_unit?: string | null
+          university_processing_unit_code?: string | null
+          university_proposing_body?: string | null
           updated_at?: string
           vat_amount?: number
           vat_label?: string
@@ -359,8 +379,12 @@ export type Database = {
           their_order?: string | null
           total?: number
           university_accounting_office?: string | null
+          university_accounting_office_code?: string | null
           university_managing_body?: string | null
+          university_managing_body_code?: string | null
           university_processing_unit?: string | null
+          university_processing_unit_code?: string | null
+          university_proposing_body?: string | null
           updated_at?: string
           vat_amount?: number
           vat_label?: string
