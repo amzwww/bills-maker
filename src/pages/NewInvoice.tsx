@@ -182,8 +182,12 @@ const NewInvoice = () => {
       }
       setIsUniversity(!!q.is_university);
       setUniAccountingOffice(q.university_accounting_office || "");
+      setUniAccountingOfficeCode(q.university_accounting_office_code || "");
       setUniManagingBody(q.university_managing_body || "");
+      setUniManagingBodyCode(q.university_managing_body_code || "");
       setUniProcessingUnit(q.university_processing_unit || "");
+      setUniProcessingUnitCode(q.university_processing_unit_code || "");
+      setUniProposingBody(q.university_proposing_body || "");
       setItems((q.line_items as any[]) || [{ description: "", unit_price: 0, quantity: 1, total: 0 }]);
       toast.success(`Presupuesto ${q.quote_number} cargado`);
     })();
