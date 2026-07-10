@@ -42,8 +42,12 @@ export type InvoicePdfData = {
   rectified_invoice_number?: string | null;
   is_university?: boolean;
   university_accounting_office?: string | null;
+  university_accounting_office_code?: string | null;
   university_managing_body?: string | null;
+  university_managing_body_code?: string | null;
   university_processing_unit?: string | null;
+  university_processing_unit_code?: string | null;
+  university_proposing_body?: string | null;
   is_quote?: boolean;
 };
 
