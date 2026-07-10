@@ -111,6 +111,7 @@ const InvoicesList = () => {
   }, []);
 
   const renderPdf = async (inv: any, mode: "save" | "open") => {
+    const targetWindow = mode === "open" ? window.open("", "_blank") : null;
     setPdfLoadingId(inv.id);
     try {
       const { data: fresh, error } = await supabase
@@ -122,8 +123,9 @@ const InvoicesList = () => {
       const current = fresh || inv;
       const issuer = issuers[current.issuer_id];
       if (!issuer) return toast.error("Emisor no encontrado");
-      generateInvoicePdf(invoicePdfData(current, issuer), mode);
+      generateInvoicePdf(invoicePdfData(current, issuer), mode, targetWindow);
     } catch (e: any) {
+      targetWindow?.close();
       toast.error(e.message || "No se pudo generar el PDF actualizado");
     } finally {
       setPdfLoadingId(null);
