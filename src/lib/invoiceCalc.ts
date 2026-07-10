@@ -35,7 +35,7 @@ export function round2(n: number) {
 }
 
 export function computeSubtotal(items: LineItem[]) {
-  return round2(items.reduce((s, it) => s + (it.parent_header ? 0 : it.total), 0));
+  return round2(items.reduce((s, it) => s + (it.parent_header ? 0 : round2(it.total)), 0));
 }
 
 export function eur(n: number) {

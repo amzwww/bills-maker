@@ -65,8 +65,12 @@ const NewInvoice = () => {
   const [canaryIgicRate, setCanaryIgicRate] = useState<0 | 7 | 20>(0);
   const [isUniversity, setIsUniversity] = useState(false);
   const [uniAccountingOffice, setUniAccountingOffice] = useState("");
+  const [uniAccountingOfficeCode, setUniAccountingOfficeCode] = useState("");
   const [uniManagingBody, setUniManagingBody] = useState("");
+  const [uniManagingBodyCode, setUniManagingBodyCode] = useState("");
   const [uniProcessingUnit, setUniProcessingUnit] = useState("");
+  const [uniProcessingUnitCode, setUniProcessingUnitCode] = useState("");
+  const [uniProposingBody, setUniProposingBody] = useState("");
 
   // Tipo-específicos
   const [ponenciaDate, setPonenciaDate] = useState(""); // yyyy-mm-dd, descripción de ponencia
@@ -131,8 +135,12 @@ const NewInvoice = () => {
       }
       setIsUniversity(!!(inv as any).is_university);
       setUniAccountingOffice((inv as any).university_accounting_office || "");
+      setUniAccountingOfficeCode((inv as any).university_accounting_office_code || "");
       setUniManagingBody((inv as any).university_managing_body || "");
+      setUniManagingBodyCode((inv as any).university_managing_body_code || "");
       setUniProcessingUnit((inv as any).university_processing_unit || "");
+      setUniProcessingUnitCode((inv as any).university_processing_unit_code || "");
+      setUniProposingBody((inv as any).university_proposing_body || "");
       setParentInvoice(inv.parent_invoice_number || "");
       setItems((inv.line_items as any[]) || [{ description: "", unit_price: 0, quantity: 1, total: 0 }]);
       setPreviewNumber(inv.invoice_number);
@@ -174,8 +182,12 @@ const NewInvoice = () => {
       }
       setIsUniversity(!!q.is_university);
       setUniAccountingOffice(q.university_accounting_office || "");
+      setUniAccountingOfficeCode(q.university_accounting_office_code || "");
       setUniManagingBody(q.university_managing_body || "");
+      setUniManagingBodyCode(q.university_managing_body_code || "");
       setUniProcessingUnit(q.university_processing_unit || "");
+      setUniProcessingUnitCode(q.university_processing_unit_code || "");
+      setUniProposingBody(q.university_proposing_body || "");
       setItems((q.line_items as any[]) || [{ description: "", unit_price: 0, quantity: 1, total: 0 }]);
       toast.success(`Presupuesto ${q.quote_number} cargado`);
     })();
@@ -366,6 +378,7 @@ const NewInvoice = () => {
         if (i !== idx) return it;
         const merged = { ...it, ...patch };
         if (!merged.parent_header) {
+          if (typeof patch.unit_price === "number") merged.unit_price = round2(patch.unit_price);
           merged.total = round2((merged.unit_price || 0) * (merged.quantity || 0));
         }
         return merged;
@@ -418,8 +431,12 @@ const NewInvoice = () => {
           client_is_canary: isCanary,
           is_university: isUniversity,
           university_accounting_office: isUniversity ? (uniAccountingOffice || null) : null,
+          university_accounting_office_code: isUniversity ? (uniAccountingOfficeCode || null) : null,
           university_managing_body: isUniversity ? (uniManagingBody || null) : null,
+          university_managing_body_code: isUniversity ? (uniManagingBodyCode || null) : null,
           university_processing_unit: isUniversity ? (uniProcessingUnit || null) : null,
+          university_processing_unit_code: isUniversity ? (uniProcessingUnitCode || null) : null,
+          university_proposing_body: isUniversity ? (uniProposingBody || null) : null,
           line_items: items as any,
           subtotal,
           vat_rate: taxes.vat_rate,
@@ -482,8 +499,12 @@ const NewInvoice = () => {
           client_is_canary: isCanary,
           is_university: isUniversity,
           university_accounting_office: isUniversity ? (uniAccountingOffice || null) : null,
+          university_accounting_office_code: isUniversity ? (uniAccountingOfficeCode || null) : null,
           university_managing_body: isUniversity ? (uniManagingBody || null) : null,
+          university_managing_body_code: isUniversity ? (uniManagingBodyCode || null) : null,
           university_processing_unit: isUniversity ? (uniProcessingUnit || null) : null,
+          university_processing_unit_code: isUniversity ? (uniProcessingUnitCode || null) : null,
+          university_proposing_body: isUniversity ? (uniProposingBody || null) : null,
           line_items: items as any,
           subtotal,
           vat_rate: taxes.vat_rate,
@@ -535,8 +556,12 @@ const NewInvoice = () => {
           invoice_type: computedType,
           is_university: isUniversity,
           university_accounting_office: isUniversity ? uniAccountingOffice : undefined,
+          university_accounting_office_code: isUniversity ? uniAccountingOfficeCode : undefined,
           university_managing_body: isUniversity ? uniManagingBody : undefined,
+          university_managing_body_code: isUniversity ? uniManagingBodyCode : undefined,
           university_processing_unit: isUniversity ? uniProcessingUnit : undefined,
+          university_processing_unit_code: isUniversity ? uniProcessingUnitCode : undefined,
+          university_proposing_body: isUniversity ? uniProposingBody : undefined,
         });
       }
 
@@ -765,23 +790,39 @@ const NewInvoice = () => {
               </div>
             )}
             <label className="flex items-center gap-2 cursor-pointer">
-              <Checkbox checked={isUniversity} onCheckedChange={(v) => { setIsUniversity(!!v); if (!v) { setUniAccountingOffice(""); setUniManagingBody(""); setUniProcessingUnit(""); } }} />
+              <Checkbox checked={isUniversity} onCheckedChange={(v) => { setIsUniversity(!!v); if (!v) { setUniAccountingOffice(""); setUniAccountingOfficeCode(""); setUniManagingBody(""); setUniManagingBodyCode(""); setUniProcessingUnit(""); setUniProcessingUnitCode(""); setUniProposingBody(""); } }} />
               <span className="text-sm">Universidad</span>
             </label>
           </div>
           {isUniversity && (
-            <div className="grid md:grid-cols-3 gap-4 pt-2">
+            <div className="grid md:grid-cols-2 gap-4 pt-2">
               <div>
                 <Label>Oficina contable</Label>
-                <Input value={uniAccountingOffice} onChange={(e) => setUniAccountingOffice(e.target.value)} />
+                <Input value={uniAccountingOffice} onChange={(e) => setUniAccountingOffice(e.target.value)} placeholder="Universidad de Zaragoza" />
+              </div>
+              <div>
+                <Label>Código oficina contable</Label>
+                <Input value={uniAccountingOfficeCode} onChange={(e) => setUniAccountingOfficeCode(e.target.value)} placeholder="U02100001" />
               </div>
               <div>
                 <Label>Órgano Gestor</Label>
-                <Input value={uniManagingBody} onChange={(e) => setUniManagingBody(e.target.value)} />
+                <Input value={uniManagingBody} onChange={(e) => setUniManagingBody(e.target.value)} placeholder="Vicerrectorado de..." />
+              </div>
+              <div>
+                <Label>Código órgano gestor</Label>
+                <Input value={uniManagingBodyCode} onChange={(e) => setUniManagingBodyCode(e.target.value)} placeholder="U02100009" />
               </div>
               <div>
                 <Label>Unidad Tramitadora</Label>
-                <Input value={uniProcessingUnit} onChange={(e) => setUniProcessingUnit(e.target.value)} />
+                <Input value={uniProcessingUnit} onChange={(e) => setUniProcessingUnit(e.target.value)} placeholder="Unidad gestión..." />
+              </div>
+              <div>
+                <Label>Código unidad tramitadora</Label>
+                <Input value={uniProcessingUnitCode} onChange={(e) => setUniProcessingUnitCode(e.target.value)} placeholder="U02100167" />
+              </div>
+              <div className="md:col-span-2">
+                <Label>Órgano proponente</Label>
+                <Input value={uniProposingBody} onChange={(e) => setUniProposingBody(e.target.value)} placeholder="Nombre del proponente" />
               </div>
             </div>
           )}
