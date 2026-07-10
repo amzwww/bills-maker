@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, FileDown, CheckCircle2, Search, X, Pencil, Save } from "lucide-react";
 import { eur } from "@/lib/invoiceCalc";
 import { generateInvoicePdf, type Issuer } from "@/lib/pdf";
+import { invoicePdfData } from "@/lib/invoicePdfData";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -25,6 +26,7 @@ const Clients = () => {
   const [editClient, setEditClient] = useState<any | null>(null);
   const [editForm, setEditForm] = useState<any>({});
   const [savingEdit, setSavingEdit] = useState(false);
+  const [pdfLoadingId, setPdfLoadingId] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -93,31 +95,24 @@ const Clients = () => {
     });
   }, [clients, nameFilter, issuerFilter]);
 
-  const downloadPdf = (inv: Invoice) => {
-    const issuer = issuers[inv.issuer_id];
-    if (!issuer) return toast.error("Emisor no encontrado");
-    generateInvoicePdf({
-      issuer,
-      invoice_number: inv.invoice_number,
-      invoice_date: inv.invoice_date,
-      our_reference: inv.our_reference,
-      their_order: inv.their_order,
-      client_name: inv.client_name,
-      client_tax_id: inv.client_tax_id,
-      client_address_line1: inv.client_address_line1,
-      client_address_line2: inv.client_address_line2,
-      client_city_zip: inv.client_city_zip,
-      client_country: inv.client_country,
-      line_items: inv.line_items || [],
-      subtotal: parseFloat(inv.subtotal),
-      vat_rate: parseFloat(inv.vat_rate),
-      vat_label: inv.vat_label,
-      vat_amount: parseFloat(inv.vat_amount),
-      irpf_rate: parseFloat(inv.irpf_rate),
-      irpf_amount: parseFloat(inv.irpf_amount),
-      total: parseFloat(inv.total),
-      pre_payment_note: inv.pre_payment_note,
-    });
+  const downloadPdf = async (inv: Invoice) => {
+    setPdfLoadingId(inv.id);
+    try {
+      const { data: fresh, error } = await supabase
+        .from("invoices")
+        .select("*")
+        .eq("id", inv.id)
+        .single();
+      if (error) throw error;
+      const current = fresh || inv;
+      const issuer = issuers[current.issuer_id];
+      if (!issuer) return toast.error("Emisor no encontrado");
+      generateInvoicePdf(invoicePdfData(current, issuer));
+    } catch (e: any) {
+      toast.error(e.message || "No se pudo generar el PDF actualizado");
+    } finally {
+      setPdfLoadingId(null);
+    }
   };
 
   const openEdit = (c: any) => {
@@ -298,7 +293,7 @@ const Clients = () => {
                           )}
                         </td>
                         <td className="p-2 text-right">
-                          <Button size="sm" variant="outline" onClick={() => downloadPdf(inv)}>
+                          <Button size="sm" variant="outline" onClick={() => downloadPdf(inv)} disabled={pdfLoadingId === inv.id}>
                             <FileDown className="h-4 w-4" />
                           </Button>
                         </td>
