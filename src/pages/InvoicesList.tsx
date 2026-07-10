@@ -39,6 +39,7 @@ import {
 } from "lucide-react";
 import { eur } from "@/lib/invoiceCalc";
 import { generateInvoicePdf, type Issuer } from "@/lib/pdf";
+import { invoicePdfData } from "@/lib/invoicePdfData";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -59,6 +60,7 @@ const InvoicesList = () => {
   const [deleting, setDeleting] = useState(false);
   const [rectifyOpen, setRectifyOpen] = useState<any | null>(null);
   const [rectifying, setRectifying] = useState(false);
+  const [pdfLoadingId, setPdfLoadingId] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
   // filtros y orden
@@ -108,34 +110,24 @@ const InvoicesList = () => {
     })();
   }, []);
 
-  const renderPdf = (inv: any, mode: "save" | "open") => {
-    const issuer = issuers[inv.issuer_id];
-    if (!issuer) return toast.error("Emisor no encontrado");
-    generateInvoicePdf({
-      issuer,
-      invoice_number: inv.invoice_number,
-      invoice_date: inv.invoice_date,
-      our_reference: inv.our_reference,
-      their_order: inv.their_order,
-      client_name: inv.client_name,
-      client_tax_id: inv.client_tax_id,
-      client_address_line1: inv.client_address_line1,
-      client_address_line2: inv.client_address_line2,
-      client_city_zip: inv.client_city_zip,
-      client_country: inv.client_country,
-      line_items: inv.line_items || [],
-      subtotal: parseFloat(inv.subtotal),
-      vat_rate: parseFloat(inv.vat_rate),
-      vat_label: inv.vat_label,
-      vat_amount: parseFloat(inv.vat_amount),
-      irpf_rate: parseFloat(inv.irpf_rate),
-      irpf_amount: parseFloat(inv.irpf_amount),
-      total: parseFloat(inv.total),
-      pre_payment_note: inv.pre_payment_note,
-      invoice_type: inv.invoice_type,
-      is_rectificative: inv.is_rectificative,
-      rectified_invoice_number: inv.rectified_invoice_number,
-    }, mode);
+  const renderPdf = async (inv: any, mode: "save" | "open") => {
+    setPdfLoadingId(inv.id);
+    try {
+      const { data: fresh, error } = await supabase
+        .from("invoices")
+        .select("*")
+        .eq("id", inv.id)
+        .single();
+      if (error) throw error;
+      const current = fresh || inv;
+      const issuer = issuers[current.issuer_id];
+      if (!issuer) return toast.error("Emisor no encontrado");
+      generateInvoicePdf(invoicePdfData(current, issuer), mode);
+    } catch (e: any) {
+      toast.error(e.message || "No se pudo generar el PDF actualizado");
+    } finally {
+      setPdfLoadingId(null);
+    }
   };
 
   const downloadPdf = (inv: any) => renderPdf(inv, "save");
@@ -244,9 +236,10 @@ const InvoicesList = () => {
     setRectifying(true);
     try {
       const inv = rectifyOpen;
-      const year = parseInt(inv.invoice_date.slice(0, 4));
-      // Get next seq (check gaps first)
-      const { data: gapData } = await supabase.rpc("find_invoice_gaps", {
+      const rectificationDate = new Date().toISOString().slice(0, 10);
+      const year = parseInt(rectificationDate.slice(0, 4));
+      // Get next rectificative seq (check rectificative gaps first)
+      const { data: gapData } = await supabase.rpc("find_rectificative_invoice_gaps", {
         _issuer_id: inv.issuer_id,
         _year: year,
       });
@@ -254,14 +247,14 @@ const InvoicesList = () => {
       if (gapData && gapData.length > 0) {
         seq = gapData[0].missing_seq;
       } else {
-        const { data: seqData, error: seqErr } = await supabase.rpc("next_invoice_seq", {
+        const { data: seqData, error: seqErr } = await supabase.rpc("next_rectificative_invoice_seq", {
           _issuer_id: inv.issuer_id,
           _year: year,
         });
         if (seqErr || typeof seqData !== "number") throw seqErr || new Error("No seq");
         seq = seqData;
       }
-      const invoiceNumber = `${inv.issuer_id}-${year}-${String(seq).padStart(3, "0")}`;
+      const invoiceNumber = `${inv.issuer_id}-REC-${year}-${String(seq).padStart(3, "0")}`;
 
       // Create rectificative line items (negative amounts)
       const originalItems = (inv.line_items || []) as any[];
@@ -277,7 +270,7 @@ const InvoicesList = () => {
         year,
         seq,
         invoice_type: inv.invoice_type,
-        invoice_date: new Date().toISOString().slice(0, 10),
+        invoice_date: rectificationDate,
         parent_invoice_number: inv.parent_invoice_number || null,
         our_reference: inv.our_reference || null,
         their_order: inv.their_order || null,
@@ -289,6 +282,14 @@ const InvoicesList = () => {
         client_country: inv.client_country || null,
         client_is_foreign: inv.client_is_foreign,
         client_is_canary: inv.client_is_canary,
+        is_university: !!inv.is_university,
+        university_accounting_office: inv.university_accounting_office || null,
+        university_accounting_office_code: inv.university_accounting_office_code || null,
+        university_managing_body: inv.university_managing_body || null,
+        university_managing_body_code: inv.university_managing_body_code || null,
+        university_processing_unit: inv.university_processing_unit || null,
+        university_processing_unit_code: inv.university_processing_unit_code || null,
+        university_proposing_body: inv.university_proposing_body || null,
         line_items: rectItems as any,
         subtotal: -Math.abs(parseFloat(inv.subtotal) || 0),
         vat_rate: parseFloat(inv.vat_rate) || 0,
@@ -309,31 +310,7 @@ const InvoicesList = () => {
       // Auto-generate PDF
       const issuer = issuers[inv.issuer_id];
       if (issuer) {
-        generateInvoicePdf({
-          issuer,
-          invoice_number: invoiceNumber,
-          invoice_date: payload.invoice_date,
-          our_reference: payload.our_reference,
-          their_order: payload.their_order,
-          client_name: payload.client_name,
-          client_tax_id: payload.client_tax_id,
-          client_address_line1: payload.client_address_line1,
-          client_address_line2: payload.client_address_line2,
-          client_city_zip: payload.client_city_zip,
-          client_country: payload.client_country,
-          line_items: rectItems,
-          subtotal: payload.subtotal,
-          vat_rate: payload.vat_rate,
-          vat_label: payload.vat_label,
-          vat_amount: payload.vat_amount,
-          irpf_rate: payload.irpf_rate,
-          irpf_amount: payload.irpf_amount,
-          total: payload.total,
-          pre_payment_note: null,
-          invoice_type: payload.invoice_type,
-          is_rectificative: true,
-          rectified_invoice_number: inv.invoice_number,
-        });
+        generateInvoicePdf(invoicePdfData(payload, issuer));
       }
 
       toast.success(`Factura rectificativa ${invoiceNumber} creada`);
@@ -839,10 +816,10 @@ const InvoicesList = () => {
                     </td>
                     <td className="p-3 text-right">
                       <div className="flex justify-end gap-2">
-                        <Button size="sm" variant="outline" onClick={() => viewPdf(r)} title="Ver factura">
+                        <Button size="sm" variant="outline" onClick={() => viewPdf(r)} title="Ver factura" disabled={pdfLoadingId === r.id}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="outline" onClick={() => downloadPdf(r)}>
+                        <Button size="sm" variant="outline" onClick={() => downloadPdf(r)} disabled={pdfLoadingId === r.id}>
                           <FileDown className="h-4 w-4 mr-1" />PDF
                         </Button>
                         {r.source_pdf_url && (
