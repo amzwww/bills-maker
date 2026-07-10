@@ -389,6 +389,36 @@ const NewInvoice = () => {
   const addItem = () => setItems((p) => [...p, { description: "", unit_price: 0, quantity: 1, total: 0 }]);
   const removeItem = (idx: number) => setItems((p) => p.filter((_, i) => i !== idx));
 
+  // Conciliación por redondeos: si el usuario indica un total esperado y difiere del computado por céntimos
+  const [expectedTotal, setExpectedTotal] = useState<string>("");
+  const expectedNum = expectedTotal.trim() === "" ? null : parseFloat(expectedTotal.replace(",", "."));
+  const totalDiff = useMemo(() => {
+    if (expectedNum === null || Number.isNaN(expectedNum)) return 0;
+    return round2(expectedNum - total);
+  }, [expectedNum, total]);
+  const canReconcile = expectedNum !== null && !Number.isNaN(expectedNum) && totalDiff !== 0 && Math.abs(totalDiff) <= 1;
+
+  const reconcileLastLine = () => {
+    if (!canReconcile || expectedNum === null) return;
+    const netMultiplier = 1 + (taxes.vat_rate / 100) - (taxes.irpf_rate / 100);
+    if (netMultiplier <= 0) return;
+    const targetSubtotal = round2(expectedNum / netMultiplier);
+    const deltaSubtotal = round2(targetSubtotal - subtotal);
+    setItems((prev) => {
+      const lastIdx = [...prev].map((it, i) => ({ it, i })).reverse().find(({ it }) => !it.parent_header)?.i;
+      if (lastIdx === undefined) return prev;
+      return prev.map((it, i) => {
+        if (i !== lastIdx) return it;
+        const newTotal = round2((it.total || 0) + deltaSubtotal);
+        const qty = it.quantity || 1;
+        const newUnit = round2(newTotal / qty);
+        return { ...it, unit_price: newUnit, total: round2(newUnit * qty) };
+      });
+    });
+    toast.success(`Última línea ajustada (${deltaSubtotal >= 0 ? "+" : ""}${deltaSubtotal.toFixed(2)} €)`);
+  };
+
+
   const handleSave = async (alsoPdf: boolean) => {
     if (!issuer) return;
     if (!clientName.trim()) {
@@ -886,6 +916,36 @@ const NewInvoice = () => {
             )}
             <div className="text-lg pt-2">TOTAL: <span className="font-bold">{eur(total)}</span></div>
           </div>
+
+          {/* Conciliación por redondeos */}
+          <div className="border-t pt-4 grid md:grid-cols-[1fr_auto] gap-3 items-end">
+            <div>
+              <Label className="text-xs text-muted-foreground">Total esperado (opcional, para conciliar redondeos)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="Ej: 1210.00"
+                value={expectedTotal}
+                onChange={(e) => setExpectedTotal(e.target.value)}
+              />
+            </div>
+            {expectedNum !== null && !Number.isNaN(expectedNum) && (
+              <div className={`text-sm rounded-md px-3 py-2 ${totalDiff === 0 ? "bg-emerald-50 text-emerald-700" : Math.abs(totalDiff) <= 1 ? "bg-amber-50 text-amber-800" : "bg-red-50 text-red-700"}`}>
+                {totalDiff === 0 ? (
+                  <span>✓ Coincide con el total</span>
+                ) : (
+                  <span>Diferencia: <b>{totalDiff > 0 ? "+" : ""}{totalDiff.toFixed(2)} €</b></span>
+                )}
+              </div>
+            )}
+          </div>
+          {canReconcile && (
+            <div className="flex justify-end">
+              <Button size="sm" variant="outline" onClick={reconcileLastLine}>
+                Ajustar última línea ({totalDiff > 0 ? "+" : ""}{totalDiff.toFixed(2)} €)
+              </Button>
+            </div>
+          )}
         </Card>
 
         {/* Notas */}
