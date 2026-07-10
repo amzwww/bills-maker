@@ -158,18 +158,31 @@ export function generateInvoicePdf(data: InvoicePdfData, mode: "save" | "open" =
   // University fields
   if (data.is_university) {
     y += 2;
-    const uniFields = [
-      { label: "Oficina contable:", value: data.university_accounting_office },
-      { label: "Órgano Gestor:", value: data.university_managing_body },
-      { label: "Unidad Tramitadora:", value: data.university_processing_unit },
+    const uniFields: { label: string; value?: string | null; code?: string | null }[] = [
+      { label: "Oficina contable:", value: data.university_accounting_office, code: data.university_accounting_office_code },
+      { label: "Órgano Gestor:", value: data.university_managing_body, code: data.university_managing_body_code },
+      { label: "Unidad Tramitadora:", value: data.university_processing_unit, code: data.university_processing_unit_code },
+      { label: "Órgano proponente:", value: data.university_proposing_body },
     ];
+    const maxUniW = pageW - margin * 2;
     for (const uf of uniFields) {
       if (uf.value && uf.value.trim()) {
         doc.setFont("helvetica", "bold");
         doc.text(uf.label, margin, y);
+        const labelW = doc.getTextWidth(uf.label);
         doc.setFont("helvetica", "normal");
-        doc.text(uf.value, margin + doc.getTextWidth(uf.label) + 2, y);
+        let text = uf.value;
+        if (uf.code && uf.code.trim()) {
+          text = `${uf.value} / Código: ${uf.code}`;
+        }
+        const valueX = margin + labelW + 2;
+        const lines = doc.splitTextToSize(text, maxUniW - labelW - 2) as string[];
+        doc.text(lines[0], valueX, y);
         y += 5;
+        for (let i = 1; i < lines.length; i++) {
+          doc.text(lines[i], valueX, y);
+          y += 5;
+        }
       }
     }
   }
