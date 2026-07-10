@@ -402,6 +402,7 @@ const InvoicesList = () => {
     if (filtered.length === 0) return toast.error("No hay facturas para exportar");
     const data = filtered.map((r) => ({
       Número: r.invoice_number,
+      "Rectifica a": r.rectified_invoice_number || "",
       Fecha: r.invoice_date,
       "Fecha ponencia": extractPonenciaDate(r) || "",
       Cliente: r.client_name,
@@ -417,7 +418,7 @@ const InvoicesList = () => {
     }));
     const ws = XLSX.utils.json_to_sheet(data);
     ws["!cols"] = [
-      { wch: 16 }, { wch: 12 }, { wch: 12 }, { wch: 28 }, { wch: 14 }, { wch: 10 },
+      { wch: 16 }, { wch: 16 }, { wch: 12 }, { wch: 12 }, { wch: 28 }, { wch: 14 }, { wch: 10 },
       { wch: 40 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 },
       { wch: 9 }, { wch: 12 },
     ];
@@ -765,7 +766,14 @@ const InvoicesList = () => {
                 )}
                 {filtered.map((r) => (
                   <tr key={r.id} className="border-t">
-                    <td className="p-3 font-mono whitespace-nowrap">{r.invoice_number}</td>
+                    <td className="p-3 whitespace-nowrap">
+                      <div className="font-mono">{r.invoice_number}</div>
+                      {r.is_rectificative && r.rectified_invoice_number && (
+                        <div className="text-xs text-muted-foreground font-sans">
+                          Rectifica {r.rectified_invoice_number}
+                        </div>
+                      )}
+                    </td>
                     <td className="p-3 whitespace-nowrap">{r.invoice_date}</td>
                     <td className="p-3 whitespace-nowrap text-muted-foreground">
                       {extractPonenciaDate(r) || "—"}
