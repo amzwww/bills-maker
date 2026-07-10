@@ -395,8 +395,12 @@ const NewQuote = () => {
           invoice_type: computedType,
           is_university: isUniversity,
           university_accounting_office: isUniversity ? uniAccountingOffice : undefined,
+          university_accounting_office_code: isUniversity ? uniAccountingOfficeCode : undefined,
           university_managing_body: isUniversity ? uniManagingBody : undefined,
+          university_managing_body_code: isUniversity ? uniManagingBodyCode : undefined,
           university_processing_unit: isUniversity ? uniProcessingUnit : undefined,
+          university_processing_unit_code: isUniversity ? uniProcessingUnitCode : undefined,
+          university_proposing_body: isUniversity ? uniProposingBody : undefined,
           is_quote: true,
         });
       }
