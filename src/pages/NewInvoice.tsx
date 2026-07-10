@@ -46,6 +46,12 @@ const NewInvoice = () => {
   const [gaps, setGaps] = useState<number[]>([]);
   const [chosenSeq, setChosenSeq] = useState<number | null>(null);
   const [editLoaded, setEditLoaded] = useState(false);
+  const [originalInvoice, setOriginalInvoice] = useState<{
+    invoice_number: string;
+    invoice_date: string;
+    year: number;
+    seq: number;
+  } | null>(null);
 
   // Cabecera
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0, 10));
@@ -143,6 +149,12 @@ const NewInvoice = () => {
       setUniProposingBody((inv as any).university_proposing_body || "");
       setParentInvoice(inv.parent_invoice_number || "");
       setItems((inv.line_items as any[]) || [{ description: "", unit_price: 0, quantity: 1, total: 0 }]);
+      setOriginalInvoice({
+        invoice_number: inv.invoice_number,
+        invoice_date: inv.invoice_date,
+        year: inv.year,
+        seq: inv.seq,
+      });
       setPreviewNumber(inv.invoice_number);
       const matchedKey = Object.entries(PRE_PAYMENT_NOTES).find(([k, v]) => k !== "none" && k !== "other" && (v as any).text === inv.pre_payment_note);
       if (matchedKey) {
@@ -310,6 +322,7 @@ const NewInvoice = () => {
     (async () => {
       const { data } = await supabase.from("issuers").select("*").eq("id", issuerId).single();
       if (data) setIssuer(data as Issuer);
+      if (editId) return;
       const year = parseInt(invoiceDate.slice(0, 4));
       const { data: seqData } = await supabase.rpc("next_invoice_seq", { _issuer_id: issuerId, _year: year });
       const { data: gapsData } = await supabase.rpc("find_invoice_gaps" as any, { _issuer_id: issuerId, _year: year });
@@ -321,16 +334,17 @@ const NewInvoice = () => {
         setNextSeq(seqData);
       }
     })();
-  }, [issuerId, invoiceDate]);
+  }, [issuerId, invoiceDate, editId]);
 
   // Recalcular preview cuando cambia chosenSeq o nextSeq
   useEffect(() => {
+    if (editId) return;
     const year = parseInt(invoiceDate.slice(0, 4));
     const useSeq = chosenSeq ?? nextSeq;
     if (typeof useSeq === "number") {
       setPreviewNumber(`${issuerId}-${year}-${String(useSeq).padStart(3, "0")}`);
     }
-  }, [chosenSeq, nextSeq, issuerId, invoiceDate]);
+  }, [chosenSeq, nextSeq, issuerId, invoiceDate, editId]);
 
   // Auto-rellenar primera línea según tipo
   useEffect(() => {
@@ -439,15 +453,17 @@ const NewInvoice = () => {
       let year: number;
 
       if (editId) {
-        // Edit mode: keep original number/seq/year
-        invoiceNumber = previewNumber;
-        const parts = invoiceNumber.split("-");
-        year = parseInt(parts[1]);
-        seq = parseInt(parts[2]);
+        // Edit mode: keep original number/date/seq/year, always.
+        if (!originalInvoice) {
+          toast.error("La factura original aún no se ha cargado");
+          return;
+        }
+        invoiceNumber = originalInvoice.invoice_number;
+        year = originalInvoice.year;
+        seq = originalInvoice.seq;
 
         const updatePayload = {
           invoice_type: computedType,
-          invoice_date: invoiceDate,
           parent_invoice_number: type === "complemento" ? parentInvoice : null,
           our_reference: ourReference || null,
           their_order: theirOrder || null,
@@ -565,7 +581,7 @@ const NewInvoice = () => {
         generateInvoicePdf({
           issuer,
           invoice_number: invoiceNumber,
-          invoice_date: invoiceDate,
+          invoice_date: editId && originalInvoice ? originalInvoice.invoice_date : invoiceDate,
           our_reference: ourReference,
           their_order: theirOrder,
           client_name: clientName,
@@ -674,7 +690,7 @@ const NewInvoice = () => {
           <div className="grid md:grid-cols-3 gap-4">
             <div>
               <Label>Fecha de factura</Label>
-              <Input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
+              <Input type="date" value={invoiceDate} disabled={!!editId} onChange={(e) => setInvoiceDate(e.target.value)} />
             </div>
             <div>
               <Label>Nuestra referencia (opcional)</Label>
