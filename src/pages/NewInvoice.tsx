@@ -135,8 +135,12 @@ const NewInvoice = () => {
       }
       setIsUniversity(!!(inv as any).is_university);
       setUniAccountingOffice((inv as any).university_accounting_office || "");
+      setUniAccountingOfficeCode((inv as any).university_accounting_office_code || "");
       setUniManagingBody((inv as any).university_managing_body || "");
+      setUniManagingBodyCode((inv as any).university_managing_body_code || "");
       setUniProcessingUnit((inv as any).university_processing_unit || "");
+      setUniProcessingUnitCode((inv as any).university_processing_unit_code || "");
+      setUniProposingBody((inv as any).university_proposing_body || "");
       setParentInvoice(inv.parent_invoice_number || "");
       setItems((inv.line_items as any[]) || [{ description: "", unit_price: 0, quantity: 1, total: 0 }]);
       setPreviewNumber(inv.invoice_number);
