@@ -95,7 +95,8 @@ const Clients = () => {
     });
   }, [clients, nameFilter, issuerFilter]);
 
-  const downloadPdf = async (inv: Invoice) => {
+  const renderPdf = async (inv: Invoice, mode: "save" | "open") => {
+    const targetWindow = mode === "open" ? window.open("", "_blank") : null;
     setPdfLoadingId(inv.id);
     try {
       const { data: fresh, error } = await supabase
@@ -106,14 +107,20 @@ const Clients = () => {
       if (error) throw error;
       const current = fresh || inv;
       const issuer = issuers[current.issuer_id];
-      if (!issuer) return toast.error("Emisor no encontrado");
-      generateInvoicePdf(invoicePdfData(current, issuer));
+      if (!issuer) {
+        targetWindow?.close();
+        return toast.error("Emisor no encontrado");
+      }
+      generateInvoicePdf(invoicePdfData(current, issuer), mode, targetWindow);
     } catch (e: any) {
+      targetWindow?.close();
       toast.error(e.message || "No se pudo generar el PDF actualizado");
     } finally {
       setPdfLoadingId(null);
     }
   };
+
+  const downloadPdf = (inv: Invoice) => renderPdf(inv, "save");
 
   const openEdit = (c: any) => {
     const sample = c.invoices[0] || {};
